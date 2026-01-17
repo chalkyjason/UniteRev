@@ -86,6 +86,19 @@ services:
       - redis
     command: celery -A workers.celery_app beat --loglevel=info
 
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lpf_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+
 volumes:
   postgres_data:
   redis_data:

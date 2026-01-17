@@ -1,24 +1,48 @@
 # Live Protest Finder
 
-A multi-platform live stream aggregation engine for real-time civil documentation. Aggregates live protest streams from YouTube, Twitch, Rumble, and X (Twitter).
+A multi-platform live stream aggregation engine with a **multi-stream viewer dashboard**. Watch multiple protest streams simultaneously from YouTube, Twitch, Rumble, and X (Twitter) in a customizable grid layout.
+
+## 🎬 Multi-Stream Viewer
+
+The flagship feature is a **professional-grade multi-stream dashboard** that allows you to:
+
+- 📺 **Display multiple streams** in customizable grid layouts (1x1 to 4x4)
+- 🔊 **Single audio source** - Play audio from ONE stream with visual indicator
+- 🔴 **Red border highlight** around the active audio stream
+- 🎯 **Stream management** - Search, filter, and organize live streams
+- 📱 **Responsive design** - Works on desktop, tablet, and mobile
+
+### Grid Layouts Available
+
+`1x1` • `1x2` • `2x1` • `2x2` • `2x3` • `3x2` • `3x3` • `4x2` • `2x4` • `4x4`
+
+Perfect for monitoring multiple protests, rallies, or events simultaneously!
 
 ## Architecture Overview
 
-This system implements a **Connector-based microservices pattern** with three key components:
+This system implements a **Connector-based microservices pattern** with four key components:
 
 1. **Platform Connectors** - Handles API interactions for YouTube, Twitch, etc.
 2. **Smart Polling Engine** - Optimizes API usage with dual-loop strategy (Discovery + Liveness)
 3. **RESTful API** - Exposes normalized stream data to client applications
+4. **Multi-Stream Viewer** - React-based dashboard for viewing multiple streams
 
 ### Key Features
 
+#### Backend
 - ✅ **YouTube Integration** with RSS backdoor (0 API cost) and batch validation
 - ✅ **Twitch Integration** with Helix API and category filtering
 - ✅ **Smart Quota Management** - Stays within free API limits
 - ✅ **Real-time Updates** - Sub-minute latency for stream status
 - ✅ **Privacy-First** - City-level geo-tagging only (no precise coordinates)
 - ✅ **Trust Scoring** - Channel verification based on age, subscribers, and history
-- ✅ **User Follows** - Device-based channel pinning (no auth required)
+
+#### Frontend
+- ✅ **Multi-Stream Grid** - Display 1-16 streams simultaneously
+- ✅ **Smart Audio** - Single audio source with red border indicator
+- ✅ **Stream Browser** - Search, filter, and select streams
+- ✅ **Persistent State** - Your layout and selections are saved
+- ✅ **Platform Color Coding** - Visual distinction for each platform
 
 ## Technical Stack
 
@@ -29,6 +53,14 @@ This system implements a **Connector-based microservices pattern** with three ke
 - **Celery** - Background task processing
 - **asyncio** - Async I/O for API calls
 
+### Frontend
+- **React 18** - UI framework
+- **Vite** - Build tool and dev server
+- **Zustand** - State management
+- **React Player** - Multi-platform video player
+- **Axios** - HTTP client
+- **Nginx** - Production web server
+
 ### Connectors
 - **YouTube Data API v3** (10k quota/day)
 - **Twitch Helix API** (800 req/min)
@@ -38,6 +70,17 @@ This system implements a **Connector-based microservices pattern** with three ke
 
 ```
 UniteRev/
+├── frontend/             # React Multi-Stream Viewer
+│   ├── src/
+│   │   ├── components/   # React components
+│   │   │   ├── StreamGrid.jsx       # Multi-stream display
+│   │   │   ├── GridLayoutSelector.jsx  # Layout chooser
+│   │   │   └── StreamSelector.jsx   # Stream picker modal
+│   │   ├── store/        # Zustand state management
+│   │   ├── api/          # Backend API integration
+│   │   └── App.jsx       # Main application
+│   ├── package.json      # Node dependencies
+│   └── Dockerfile        # Frontend container
 ├── backend/
 │   ├── api/              # FastAPI application
 │   │   ├── main.py       # Entry point
@@ -53,8 +96,7 @@ UniteRev/
 │   ├── workers/          # Background workers
 │   │   ├── celery_app.py # Celery configuration
 │   │   └── tasks.py      # Discovery & Liveness loops
-│   ├── requirements.txt  # Python dependencies
-│   └── .env.example      # Environment variables template
+│   └── requirements.txt  # Python dependencies
 ├── config/
 │   └── database.sql      # Database schema
 ├── docker-compose.yml    # Container orchestration
@@ -92,14 +134,24 @@ UniteRev/
    docker-compose exec postgres psql -U lpfuser -d liveprotestfinder -f /docker-entrypoint-initdb.d/init.sql
    ```
 
-5. **Verify the API**
+5. **Verify the services**
    ```bash
    curl http://localhost:8000/health
    ```
 
-The API will be available at: `http://localhost:8000`
+6. **Access the applications**
+   - **Multi-Stream Viewer**: `http://localhost:3000`
+   - **API Backend**: `http://localhost:8000`
+   - **API Documentation**: `http://localhost:8000/docs`
 
-API Documentation: `http://localhost:8000/docs`
+### Using the Multi-Stream Viewer
+
+1. Open `http://localhost:3000` in your browser
+2. Click **"Select Streams"** to browse available live streams
+3. Choose streams and add them to your grid
+4. Select your preferred grid layout (2x2, 3x3, 4x4, etc.)
+5. **Click any stream** to activate its audio (red border will appear)
+6. Your layout and stream selections are automatically saved!
 
 ## API Endpoints
 
