@@ -1,342 +1,314 @@
-# Live Protest Viewer 📺
+# Multi-Stream Manager 📺
 
-**Watch multiple live protest streams at once - Simple setup, no coding needed!**
+**Watch multiple live streams at once - Works in your browser, no installation!**
 
-![Multi-Stream Dashboard](https://img.shields.io/badge/streams-1--16-red) ![Platform](https://img.shields.io/badge/platform-Mac%20%7C%20Windows%20%7C%20Linux-blue)
-
-## What Does This Do?
-
-This app lets you **watch multiple live protest streams** on one screen at the same time. You can:
-
-- 📺 Watch 4, 9, or even 16 streams at once (you choose the layout)
-- 🔊 Listen to ONE stream at a time (click to switch)
-- 🔴 See a **red border** around the stream with sound
-- 🔍 Search and filter streams from YouTube, Twitch, and more
-- 💾 Your setup saves automatically
-
-**Perfect for monitoring multiple events, protests, or rallies happening at the same time!**
+![Multi-Stream Dashboard](https://img.shields.io/badge/streams-1--16-red) ![Platform](https://img.shields.io/badge/platform-Any%20Browser-blue)
 
 ---
 
-## ⚡ Quick Setup (3 Steps)
+## 🚀 **INSTANT START** (No Setup Needed!)
 
-### Step 1: Install Docker Desktop
+### The Standalone Version (Recommended)
 
-Docker is like a "virtual computer" that runs the app. It's free and easy to install.
+**Just download and double-click - that's it!**
 
-**Download for your computer:**
-- **Mac**: [Download Docker for Mac](https://desktop.docker.com/mac/main/amd64/Docker.dmg)
-- **Windows**: [Download Docker for Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+1. **Download** the `standalone` folder
+2. **Double-click** `index.html`
+3. **Start adding streams!**
 
-**Installation:**
-1. Double-click the downloaded file
-2. Follow the installer (just click "Next" and "Install")
-3. Restart your computer when it asks
-4. Open Docker Desktop - you should see a whale icon 🐳
+✅ No installation
+✅ No Docker
+✅ No API keys
+✅ No coding
+✅ Works on **any computer**
 
-**How to know it worked:** Open Docker Desktop and it should say "Docker Desktop is running"
-
----
-
-### Step 2: Get API Keys (Free)
-
-The app needs permission to find streams on YouTube and Twitch. Don't worry - it's free!
-
-#### YouTube API Key (5 minutes)
-
-1. Go to: https://console.cloud.google.com/
-2. Click **"Create Project"** (top left)
-3. Name it anything (like "Stream Viewer")
-4. Click **"APIs & Services"** → **"Enable APIs"**
-5. Search for **"YouTube Data API v3"**
-6. Click **"Enable"**
-7. Click **"Credentials"** (left sidebar)
-8. Click **"Create Credentials"** → **"API Key"**
-9. **Copy the key** (looks like: `AIzaSyD4x...`)
-
-#### Twitch API Key (5 minutes)
-
-1. Go to: https://dev.twitch.tv/console/apps
-2. Click **"Register Your Application"**
-3. Fill in:
-   - **Name**: "Stream Viewer" (or anything)
-   - **OAuth Redirect URL**: `http://localhost`
-   - **Category**: "Website Integration"
-4. Click **"Create"**
-5. Click **"Manage"** on your new app
-6. Copy the **Client ID** and **Client Secret**
-
-**Keep these keys safe - you'll need them in Step 3!**
+👉 **[Go to standalone folder](./standalone/)** to get started!
 
 ---
 
-### Step 3: Run the Setup Script
+## What Can You Do?
 
-#### For Mac/Linux:
+- 📺 **Watch 1-16 streams** at once (multiple grid layouts)
+- 🔊 **Single audio source** - Click any stream to hear it
+- 🔴 **Red border highlight** around the stream with sound
+- 💾 **Save your streams** - Build a collection of URLs
+- 🎯 **Perfect for OBS** - Add as browser source
 
-1. **Download this project:**
-   - Click the green **"Code"** button at the top of this page
-   - Click **"Download ZIP"**
-   - Unzip the file (double-click it)
-
-2. **Open Terminal:**
-   - Press `Cmd + Space`, type "Terminal", press Enter
-
-3. **Go to the folder:**
-   ```bash
-   cd ~/Downloads/UniteRev-main
-   ```
-
-4. **Run the setup:**
-   ```bash
-   chmod +x setup.sh
-   ./setup.sh
-   ```
-
-#### For Windows:
-
-1. **Download this project:**
-   - Click the green **"Code"** button at the top of this page
-   - Click **"Download ZIP"**
-   - Right-click the ZIP → **"Extract All"**
-
-2. **Open PowerShell:**
-   - Press `Windows Key`, type "PowerShell", press Enter
-
-3. **Go to the folder:**
-   ```powershell
-   cd ~\Downloads\UniteRev-main
-   ```
-
-4. **Run the setup:**
-   ```powershell
-   .\setup.bat
-   ```
-
-The setup script will:
-- ✅ Ask for your API keys (paste them in)
-- ✅ Check if Docker is running
-- ✅ Start the app automatically
-- ✅ Open your browser to the viewer
-
-**That's it! You're done! 🎉**
+**Use Cases:**
+- Monitor multiple protest streams
+- Keep an eye on your own stream + chat + alerts
+- Watch different camera angles
+- Compare multiple sources
+- Research and documentation
 
 ---
 
-## 🎬 How to Use the Viewer
+## Two Versions Available
 
-The app will open at: **http://localhost:3000**
+### 1️⃣ **Standalone Version** (Easiest - START HERE!)
 
-### First Time Setup:
+**Just HTML + JavaScript - Works instantly**
 
-1. **Select Streams**
-   - Click the blue **"Select Streams"** button
-   - You'll see all live protest streams available
-   - Click the checkboxes to add streams to your grid
+✅ Double-click to open
+✅ Add any stream URL (YouTube, Twitch, Facebook, etc.)
+✅ Save streams to your list
+✅ Everything stored in browser
+✅ No installation required
 
-2. **Choose Your Layout**
-   - At the top, click a layout button:
-     - **2×2** = 4 streams (recommended to start)
-     - **3×3** = 9 streams
-     - **4×4** = 16 streams
-   - Try different layouts to see what you like!
+**Perfect for:**
+- Quick stream monitoring
+- OBS users
+- Anyone who wants simplicity
+- No technical knowledge needed
 
-3. **Control Audio**
-   - **Click any stream** to hear its audio
-   - A **red border** appears around the stream with sound
-   - Click another stream to switch audio
-   - Only one stream plays audio at a time
-
-4. **Search & Filter**
-   - Use the search box to find specific locations or topics
-   - Filter by platform (YouTube, Twitch, etc.)
-   - Sort by most viewers or newest
-
-### Your settings save automatically!
-Close the browser and come back - your streams and layout will still be there.
+📂 **Location**: `standalone/` folder
+📖 **Guide**: [standalone/README.md](./standalone/README.md)
 
 ---
 
-## 🔧 Daily Use
+### 2️⃣ **Full System** (Advanced Features)
 
-### Starting the App:
+**Automated stream discovery with backend**
 
-**Easy way:** Just run the setup script again!
-- Mac/Linux: `./setup.sh`
-- Windows: `.\setup.bat`
+✅ Auto-discovers protest streams on YouTube & Twitch
+✅ Search and filter by keywords
+✅ Platform integration (APIs)
+✅ Database of streams
+✅ Docker deployment
 
-**Manual way:**
-```bash
-docker-compose up -d
+**Perfect for:**
+- Automated monitoring
+- Large-scale aggregation
+- Developers who want the full system
+
+📖 **Guide**: See [Full System Setup](#full-system-setup-advanced) below
+
+---
+
+## Quick Comparison
+
+| Feature | Standalone | Full System |
+|---------|------------|-------------|
+| **Setup Time** | 10 seconds | 20 minutes |
+| **Installation** | None | Docker required |
+| **Add Streams** | Manual URLs | Auto-discovery + Manual |
+| **Best For** | Individuals, OBS | Organizations, Automation |
+| **Cost** | FREE | FREE |
+| **Technical Level** | Anyone | Basic computer skills |
+
+**95% of users should use the Standalone version!**
+
+---
+
+## 🎬 How to Use (Standalone)
+
+### Step 1: Open the App
 ```
-Then open: http://localhost:3000
-
-### Stopping the App:
-
-```bash
-docker-compose down
+Double-click: standalone/index.html
 ```
 
-Or just close Docker Desktop (the whale icon 🐳)
+### Step 2: Add a Stream
+1. Click **"+ Add Stream"**
+2. Enter a name: "My Stream"
+3. Paste URL: `https://www.youtube.com/watch?v=...`
+4. Click **"Add to Grid"**
+
+### Step 3: Choose Grid Layout
+- **2×2** = 4 streams (recommended)
+- **3×3** = 9 streams
+- **4×4** = 16 streams (maximum)
+- Plus more: 1×1, 1×2, 2×1, 2×3, 3×2, 4×2, 2×4
+
+### Step 4: Control Audio
+- **Click any stream** to activate audio
+- **Red border** appears on active stream
+- Click another to switch
+
+**Your settings auto-save in the browser!**
+
+---
+
+## Supported Platforms
+
+Works with any embeddable video:
+
+✅ **YouTube** - `https://youtube.com/watch?v=VIDEO_ID`
+✅ **Twitch** - `https://twitch.tv/CHANNEL`
+✅ **Facebook Live** - `https://facebook.com/video.php?v=...`
+✅ **Any embed URL** - Just paste it!
+
+---
+
+## Browser Requirements
+
+| Browser | Support |
+|---------|---------|
+| Chrome | ✅ Excellent |
+| Edge | ✅ Excellent |
+| Firefox | ✅ Good |
+| Safari | ⚠️ Limited |
+| Brave | ✅ Excellent |
+
+**Recommended**: Chrome or Edge for best compatibility
+
+---
+
+## System Requirements
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| **RAM** | 2GB | 8GB |
+| **Internet** | 10 Mbps | 25+ Mbps |
+| **Browser** | Chrome 90+ | Latest version |
+| **Screen** | 1280×720 | 1920×1080+ |
+
+**More streams = More RAM & bandwidth**
+
+---
+
+## 💡 Pro Tips
+
+### For Best Performance:
+- ✅ Start with **2×2 layout** on laptops
+- ✅ Use **Chrome** for best compatibility
+- ✅ Close unnecessary tabs
+- ✅ Strong internet connection (10 Mbps per stream)
+
+### For OBS Users:
+1. Add **Browser Source** in OBS
+2. Point to: `file:///path/to/standalone/index.html`
+3. Set resolution to match your scene
+4. Click streams to control audio
+
+### Saving Streams:
+- Check **"Save to my stream list"** when adding
+- Reuse saved streams anytime
+- Click **"Use"** from your saved list
+- Everything persists in browser storage
 
 ---
 
 ## ❓ Troubleshooting
 
-### "Docker is not running"
-- Open Docker Desktop
-- Wait for the whale icon to stop animating
-- Try again
+### Can't open the file?
+- Make sure you're double-clicking `index.html`
+- Try right-click → Open With → Chrome
+- Check the file downloaded completely
 
-### "Can't connect to localhost:3000"
-1. Wait 30 seconds (the app takes a moment to start)
-2. Make sure Docker Desktop is running
-3. Try refreshing your browser
+### Stream won't load?
+- Verify the URL is correct
+- Check if it's a LIVE stream (not recorded)
+- Some platforms block embedding
+- Try opening the URL directly first
 
-### "No streams showing up"
-1. Check your API keys in `backend/.env`
-2. Make sure they're pasted correctly (no extra spaces)
-3. Restart: `docker-compose restart`
+### Audio not working?
+- Click the stream to activate audio
+- Only ONE stream plays audio at a time
+- Check browser isn't muted
+- Some streams don't have audio tracks
 
-### Videos won't play
-1. Try a different browser (Chrome works best)
-2. Check your internet connection
-3. Some streams may have region restrictions
-
-### General problems
-1. **Restart everything:**
-   ```bash
-   docker-compose down
-   docker-compose up -d
-   ```
-2. **Check if Docker is running** (look for the whale icon 🐳)
-3. **Still stuck?** Open an issue on GitHub with a screenshot
+### Grid looks wrong?
+- Click a different layout button
+- Refresh the page
+- Try clearing browser cache
 
 ---
 
-## 📖 Keyboard Shortcuts
+## 🛡️ Privacy & Security
 
-| Key | Action |
-|-----|--------|
-| Click stream | Toggle audio |
-| Esc | Close dialogs |
+- ✅ **No data collection** - Everything stays on your computer
+- ✅ **No accounts** - No login required
+- ✅ **No tracking** - We don't know what you watch
+- ✅ **No servers** - Runs entirely in your browser
+- ✅ **Open source** - Inspect the code yourself
 
-More shortcuts coming soon!
-
----
-
-## 🎯 Tips for Best Experience
-
-### For 4 Streams (2×2):
-✅ Clear view of each stream
-✅ Easy to follow action
-✅ Good for focused monitoring
-
-### For 9 Streams (3×3):
-✅ See more at once
-✅ Still readable on big screens
-✅ Good for comprehensive coverage
-
-### For 16 Streams (4×4):
-⚠️ Needs large monitor
-⚠️ Hard to read titles
-✅ Maximum coverage
-
-**Recommendation:** Start with 2×2 or 3×3, especially on laptops!
-
----
-
-## 🛡️ Privacy & Safety
-
-- ✅ No personal data collected
-- ✅ No account required
-- ✅ Runs locally on your computer
-- ✅ Your API keys stay on your machine
-- ✅ Open source - you can see all the code
-
----
-
-## 💰 Cost
-
-- **App**: FREE ✅
-- **YouTube API**: FREE (10,000 requests/day) ✅
-- **Twitch API**: FREE (unlimited) ✅
-
-You won't be charged for anything!
-
----
-
-## 🔄 Updating the App
-
-When there's a new version:
-
-1. Download the new ZIP file
-2. Extract it
-3. Run the setup script again
-4. That's it!
-
-Your settings and API keys will be saved.
-
----
-
-## 🆘 Need Help?
-
-1. **Check this README first** (you're reading it!)
-2. **Look at Issues tab** - someone may have had the same problem
-3. **Open a new Issue** with:
-   - What you tried to do
-   - What happened instead
-   - Your operating system (Mac/Windows/Linux)
-   - A screenshot if possible
-
----
-
-## 👥 Who Is This For?
-
-- ✅ Activists monitoring multiple protests
-- ✅ Journalists covering live events
-- ✅ Researchers studying civil movements
-- ✅ Anyone who wants to watch multiple streams at once
-
-**No coding experience needed!** If you can download files and copy/paste, you can use this.
-
----
-
-## ⚙️ System Requirements
-
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| **RAM** | 4GB | 8GB+ |
-| **Disk Space** | 5GB free | 10GB+ free |
-| **Internet** | 10 Mbps | 25+ Mbps |
-| **Browser** | Chrome 90+ | Chrome/Edge latest |
-| **Screen** | 1280×720 | 1920×1080+ |
-
-**More streams = more internet bandwidth needed!**
-
----
-
-## 🎓 What You're Actually Running
-
-*For curious users:*
-
-This app has three parts:
-1. **Database** (PostgreSQL) - Stores stream info
-2. **Backend** (Python) - Finds and tracks streams
-3. **Frontend** (React) - The website you see
-
-Docker runs all three parts automatically. You don't need to understand any of this - it just works!
+**100% Privacy-First!**
 
 ---
 
 ## 📜 License
 
-MIT License - Free to use, modify, and share!
+**MIT License** - Free to use, modify, and share!
 
 ---
 
-## 🌟 Made This Better?
+## Full System Setup (Advanced)
 
-If you made the setup even simpler or found a better way to explain something, please share! Open a Pull Request or Issue.
+*Only needed if you want automated stream discovery*
+
+<details>
+<summary><b>Click to expand full setup instructions</b></summary>
+
+### Prerequisites
+- Docker Desktop
+- YouTube Data API key
+- Twitch API credentials
+
+### Setup Steps
+
+1. **Install Docker Desktop**
+   - Mac: [Download](https://desktop.docker.com/mac/main/amd64/Docker.dmg)
+   - Windows: [Download](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+
+2. **Get API Keys**
+   - YouTube: https://console.cloud.google.com/apis/credentials
+   - Twitch: https://dev.twitch.tv/console/apps
+
+3. **Run Setup Script**
+   ```bash
+   # Mac/Linux
+   chmod +x setup.sh
+   ./setup.sh
+
+   # Windows
+   .\setup.bat
+   ```
+
+4. **Access the App**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+### Features
+- Auto-discovers YouTube & Twitch protest streams
+- Search by keywords and location
+- Platform filtering
+- Trust scoring
+- Stream archival
+
+See [QUICK_START.md](./QUICK_START.md) for detailed instructions.
+
+</details>
+
+---
+
+## 🆘 Need Help?
+
+1. **Check the README** - Most answers are here
+2. **Standalone issues** - See [standalone/README.md](./standalone/README.md)
+3. **Full system issues** - See [QUICK_START.md](./QUICK_START.md)
+4. **Still stuck?** - Open a GitHub issue
+
+---
+
+## 🌟 Contributing
+
+Found a bug? Have an idea? Pull requests welcome!
+
+---
+
+## 👥 Who Is This For?
+
+- ✅ **Activists** - Monitor multiple protests
+- ✅ **Journalists** - Compare sources
+- ✅ **Streamers** - Watch your stream + chat
+- ✅ **Researchers** - Document events
+- ✅ **OBS Users** - Multi-view setup
+- ✅ **Anyone** - Who wants to watch multiple streams!
+
+**No coding experience needed!**
+
+---
 
 **Happy streaming! 📺🔴**
+
+Start with the **[standalone version](./standalone/)** - it's the easiest!
