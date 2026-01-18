@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Stream Manager - Watch Multiple Streams at Once</title>
+    <meta name="description" content="Watch up to 16 live streams simultaneously. Perfect for OBS, Twitch streamers, and content creators. Download now!">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1F2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 20px;
+            background: #F9FAFB;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature {
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .feature h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .tier-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .price {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .price-sub {
+            color: #6B7280;
+            margin-bottom: 24px;
+        }
+
+        .features-list {
+            text-align: left;
+            margin: 24px 0;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            list-style: none;
+        }
+
+        .features-list li:before {
+            content: "✓ ";
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        .btn-pricing {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* Social Proof */
+        .social-proof {
+            padding: 60px 20px;
+            background: #F9FAFB;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6B7280;
+        }
+
+        /* FAQ */
+        .faq {
+            padding: 80px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .faq-item {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 24px;
+        }
+
+        .faq-question {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .faq-answer {
+            color: #6B7280;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1F2937;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Watch Multiple Streams at Once</h1>
+            <p>The easiest way to monitor up to 16 live streams simultaneously</p>
+            <div class="cta-buttons">
+                <a href="#pricing" class="btn btn-primary">Get Premium - $9.99</a>
+                <a href="standalone/index.html" class="btn btn-secondary">Try Free Version</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2>Perfect For</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-icon">🎥</div>
+                    <h3>Twitch Streamers</h3>
+                    <p>Monitor your stream, chat, alerts, and competitors all at once</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Content Creators</h3>
+                    <p>Watch inspiration, track trends, and research while you work</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📺</div>
+                    <h3>OBS Users</h3>
+                    <p>Add as browser source for professional multi-view setups</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📰</div>
+                    <h3>Journalists</h3>
+                    <p>Monitor multiple live events and sources simultaneously</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚽</div>
+                    <h3>Sports Fans</h3>
+                    <p>Watch multiple games happening at the same time</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💼</div>
+                    <h3>Traders</h3>
+                    <p>Keep an eye on multiple financial streams and news feeds</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2>Choose Your Plan</h2>
+            <div class="pricing-grid">
+                <!-- Free -->
+                <div class="pricing-card">
+                    <div class="tier-name">Free</div>
+                    <div class="price">$0</div>
+                    <div class="price-sub">Forever</div>
+                    <ul class="features-list">
+                        <li>Up to 4 streams (2×2)</li>
+                        <li>Save 10 streams</li>
+                        <li>Basic layouts</li>
+                        <li>Audio control</li>
+                        <li>Works in browser</li>
+                    </ul>
+                    <a href="standalone/index.html" class="btn btn-secondary btn-pricing">Download Free</a>
+                </div>
+
+                <!-- Premium -->
+                <div class="pricing-card featured">
+                    <span class="badge">MOST POPULAR</span>
+                    <div class="tier-name">Premium</div>
+                    <div class="price">$9.99</div>
+                    <div class="price-sub">One-time payment</div>
+                    <ul class="features-list">
+                        <li><strong>Up to 16 streams (4×4)</strong></li>
+                        <li><strong>All grid layouts</strong></li>
+                        <li><strong>Unlimited saved streams</strong></li>
+                        <li>Stream recording</li>
+                        <li>Hotkeys & shortcuts</li>
+                        <li>Custom themes</li>
+                        <li>Quality selector</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="https://gumroad.com/l/multistream" class="btn btn-primary btn-pricing">Buy Premium</a>
+                </div>
+
+                <!-- Pro -->
+                <div class="pricing-card">
+                    <div class="tier-name">Pro</div>
+                    <div class="price">$49</div>
+                    <div class="price-sub">Per year</div>
+                    <ul class="features-list">
+                        <li>Everything in Premium</li>
+                        <li><strong>Up to 25 streams (5×5)</strong></li>
+                        <li>Team features</li>
+                        <li>API access</li>
+                        <li>Cloud sync</li>
+                        <li>White label option</li>
+                        <li>Custom integrations</li>
+                    </ul>
+                    <a href="mailto:contact@multistream.app" class="btn btn-secondary btn-pricing">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="container">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Downloads</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">4.9/5</div>
+                    <div class="stat-label">User Rating</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <div class="faq-question">How does the license work?</div>
+                <div class="faq-answer">
+                    Purchase once, use forever. You'll receive a license key via email that unlocks all premium features.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Can I use it with OBS?</div>
+                <div class="faq-answer">
+                    Yes! Add it as a Browser Source in OBS. Perfect for monitoring multiple streams while you broadcast.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What platforms are supported?</div>
+                <div class="faq-answer">
+                    YouTube, Twitch, Facebook Live, and any platform that supports embed URLs.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Do I need to install anything?</div>
+                <div class="faq-answer">
+                    No! The free version runs in your browser. Premium includes a desktop app for better performance.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What's your refund policy?</div>
+                <div class="faq-answer">
+                    30-day money-back guarantee, no questions asked. Just email us if you're not satisfied.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Can I upgrade later?</div>
+                <div class="faq-answer">
+                    Absolutely! Start with the free version and upgrade anytime when you need more features.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Multi-Stream Manager. All rights reserved.</p>
+            <p style="margin-top: 10px; color: #9CA3AF;">
+                <a href="mailto:support@multistream.app" style="color: #9CA3AF;">Support</a> •
+                <a href="#" style="color: #9CA3AF;">Terms</a> •
+                <a href="#" style="color: #9CA3AF;">Privacy</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
