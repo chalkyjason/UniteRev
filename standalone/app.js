@@ -118,6 +118,7 @@ const app = {
                     <iframe
                         class="stream-frame"
                         src="${embedUrl}${i === this.activeAudioIndex ? '' : '&mute=1'}"
+                        referrerpolicy="strict-origin-when-cross-origin"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen>
                     </iframe>
