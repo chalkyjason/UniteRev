@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            color: #1E293B;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1E293B;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            color: #1E293B;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 6px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #E2E8F0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #CBD5E1;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .saved-streams-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stream-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .stream-item:hover {
+            border-color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .stream-info {
+            flex: 1;
+            min-width: 0;
+            margin-right: 12px;
+        }
+
+        .stream-name {
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 4px;
+        }
+
+        .stream-url {
+            font-size: 12px;
+            color: #64748B;
+            word-break: break-all;
+        }
+
+        .stream-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748B;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .grid-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .grid-btn {
+            padding: 12px;
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .grid-btn:hover {
+            border-color: #667eea;
+            background: white;
+        }
+
+        .grid-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            color: #1E293B;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #E2E8F0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎮</div>
+            <h1>Stream Control Panel</h1>
+            <p class="subtitle">Manage your streams from a separate monitor</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <span class="pulse"></span>
+                <span>Connected to Viewer</span>
+            </div>
+        </div>
+
+        <!-- Add New Stream -->
+        <div class="card">
+            <h2 class="card-title">➕ Add Stream</h2>
+
+            <div class="form-group">
+                <label class="form-label">Stream Name</label>
+                <input type="text" class="form-input" id="streamName" placeholder="e.g., Breaking News Stream">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Stream URL</label>
+                <input type="url" class="form-input" id="streamUrl" placeholder="https://www.youtube.com/watch?v=...">
+                <div class="form-help">
+                    Supports: YouTube, Twitch, Facebook Live, Rumble
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="saveStream" checked>
+                    <label for="saveStream">Save to my stream list for later</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="controlPanel.addStream()">
+                <span>➕</span>
+                <span>Add to Viewer</span>
+            </button>
+        </div>
+
+        <!-- Grid Layout Selector -->
+        <div class="card">
+            <h2 class="card-title">📐 Grid Layout</h2>
+            <div class="grid-selector" id="layoutSelector"></div>
+        </div>
+
+        <!-- Saved Streams -->
+        <div class="card">
+            <h2 class="card-title">💾 Saved Streams</h2>
+            <div class="saved-streams-list" id="savedStreamsList"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2 class="card-title">⚡ Quick Actions</h2>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="controlPanel.clearAllStreams()">
+                    🗑️ Clear All
+                </button>
+                <button class="btn btn-secondary" onclick="controlPanel.refreshViewer()">
+                    🔄 Refresh Viewer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const controlPanel = {
+            // State (synced with main viewer via localStorage)
+            gridLayout: '2x2',
+            gridStreams: [],
+            savedStreams: [],
+
+            init() {
+                this.loadState();
+                this.renderLayouts();
+                this.renderSavedStreams();
+                this.setupEventListeners();
+
+                // Listen for storage changes from viewer
+                window.addEventListener('storage', (e) => {
+                    if (e.key && e.key.startsWith('multistream_')) {
+                        this.loadState();
+                        this.renderLayouts();
+                        this.renderSavedStreams();
+                    }
+                });
+
+                // Auto-focus name input
+                document.getElementById('streamName').focus();
+            },
+
+            loadState() {
+                this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
+                this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
+                this.savedStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
+            },
+
+            saveState() {
+                localStorage.setItem('multistream_layout', this.gridLayout);
+                localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
+                localStorage.setItem('multistream_saved', JSON.stringify(this.savedStreams));
+
+                // Trigger storage event for viewer
+                window.dispatchEvent(new Event('storage'));
+            },
+
+            renderLayouts() {
+                const layouts = ['1x1', '1x2', '2x1', '2x2', '2x3', '3x2', '3x3', '4x2', '2x4', '4x4'];
+                const container = document.getElementById('layoutSelector');
+
+                container.innerHTML = layouts.map(layout => {
+                    const [rows, cols] = layout.split('x');
+                    const isActive = layout === this.gridLayout;
+                    return `
+                        <button
+                            class="grid-btn ${isActive ? 'active' : ''}"
+                            onclick="controlPanel.setLayout('${layout}')">
+                            ${rows}×${cols}
+                        </button>
+                    `;
+                }).join('');
+            },
+
+            setLayout(layout) {
+                this.gridLayout = layout;
+                const [rows, cols] = layout.split('x').map(Number);
+                const newTotal = rows * cols;
+
+                // Resize grid array
+                const newGrid = Array(newTotal).fill(null);
+                for (let i = 0; i < Math.min(this.gridStreams.length, newTotal); i++) {
+                    newGrid[i] = this.gridStreams[i];
+                }
+                this.gridStreams = newGrid;
+
+                this.saveState();
+                this.renderLayouts();
+            },
+
+            addStream() {
+                const name = document.getElementById('streamName').value.trim();
+                const url = document.getElementById('streamUrl').value.trim();
+                const shouldSave = document.getElementById('saveStream').checked;
+
+                if (!name || !url) {
+                    alert('Please enter both stream name and URL');
+                    return;
+                }
+
+                const stream = { name, url };
+
+                // Save to saved streams if checked
+                if (shouldSave && !this.savedStreams.some(s => s.url === url)) {
+                    this.savedStreams.push(stream);
+                }
+
+                // Find first empty slot
+                const emptyIndex = this.gridStreams.findIndex(s => s === null);
+                if (emptyIndex >= 0) {
+                    this.gridStreams[emptyIndex] = stream;
+                    this.saveState();
+
+                    // Clear form
+                    document.getElementById('streamName').value = '';
+                    document.getElementById('streamUrl').value = '';
+                    document.getElementById('streamName').focus();
+
+                    this.renderSavedStreams();
+                } else {
+                    alert('Grid is full! Clear a slot or change to a larger layout.');
+                }
+            },
+
+            renderSavedStreams() {
+                const container = document.getElementById('savedStreamsList');
+
+                if (this.savedStreams.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">💾</div>
+                            <div>No saved streams yet</div>
+                            <div style="font-size: 12px; margin-top: 8px;">Save streams for quick access later</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.savedStreams.map((stream, index) => `
+                    <div class="stream-item">
+                        <div class="stream-info">
+                            <div class="stream-name">${this.escapeHtml(stream.name)}</div>
+                            <div class="stream-url">${this.escapeHtml(stream.url)}</div>
+                        </div>
+                        <div class="stream-actions">
+                            <button class="btn btn-secondary btn-small" onclick="controlPanel.useStream(${index})">
+                                ▶️ Use
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="controlPanel.deleteStream(${index})">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            useStream(index) {
+                const stream = this.savedStreams[index];
+                const emptyIndex = this.gridStreams.findIndex(s => s === null);
+
+                if (emptyIndex >= 0) {
+                    this.gridStreams[emptyIndex] = { ...stream };
+                    this.saveState();
+                } else {
+                    alert('Grid is full! Clear a slot or change to a larger layout.');
+                }
+            },
+
+            deleteStream(index) {
+                if (confirm(`Delete "${this.savedStreams[index].name}"?`)) {
+                    this.savedStreams.splice(index, 1);
+                    this.saveState();
+                    this.renderSavedStreams();
+                }
+            },
+
+            clearAllStreams() {
+                if (confirm('Remove all streams from the viewer grid?')) {
+                    this.gridStreams = this.gridStreams.map(() => null);
+                    this.saveState();
+                }
+            },
+
+            refreshViewer() {
+                this.saveState();
+                alert('Viewer refreshed! All changes synchronized.');
+            },
+
+            setupEventListeners() {
+                // Enter key to add stream
+                document.getElementById('streamName').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        document.getElementById('streamUrl').focus();
+                    }
+                });
+
+                document.getElementById('streamUrl').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addStream();
+                    }
+                });
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            controlPanel.init();
+        });
+    </script>
+</body>
+</html>

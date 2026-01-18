@@ -384,20 +384,38 @@ const app = {
     },
 
     getEmbedUrl(url) {
+        // YouTube - Use nocookie domain to avoid embedding restrictions
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const videoId = this.extractYouTubeId(url);
-            return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1`;
+            // Use youtube-nocookie.com for better embedding support
+            return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1&enablejsapi=1&origin=${window.location.origin || 'null'}`;
         }
 
+        // Twitch - Handle both file:// and http(s):// protocols
         if (url.includes('twitch.tv')) {
             const channel = url.split('twitch.tv/')[1]?.split('/')[0];
-            return `https://player.twitch.tv/?channel=${channel}&parent=${window.location.hostname || 'localhost'}`;
+            // For file:// protocol, use localhost as parent
+            const parent = window.location.hostname || 'localhost';
+            return `https://player.twitch.tv/?channel=${channel}&parent=${parent}&autoplay=true`;
         }
 
+        // Facebook Live
         if (url.includes('facebook.com')) {
-            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&autoplay=true`;
+            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&autoplay=true&show_text=false`;
         }
 
+        // Rumble
+        if (url.includes('rumble.com')) {
+            const videoId = url.split('/').pop()?.split('.html')[0];
+            return `https://rumble.com/embed/${videoId}/?pub=4`;
+        }
+
+        // Direct iframe src
+        if (url.includes('iframe') || url.includes('embed')) {
+            return url;
+        }
+
+        // Default: try as-is
         return url;
     },
 
