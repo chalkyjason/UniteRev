@@ -112,6 +112,12 @@ const app = {
                     cell.classList.add('active-audio');
                 }
 
+                // Apply custom size (grid span)
+                const size = stream.size || '1x1';
+                const [spanCols, spanRows] = size.split('x').map(Number);
+                cell.style.gridColumn = `span ${spanCols}`;
+                cell.style.gridRow = `span ${spanRows}`;
+
                 const embedUrl = this.getEmbedUrl(stream.url);
 
                 cell.innerHTML = `
@@ -125,7 +131,15 @@ const app = {
                     <div class="stream-overlay">
                         <div class="stream-header">
                             <div class="stream-title">${this.escapeHtml(stream.name)}</div>
-                            <button class="btn-remove" onclick="app.removeStream(${i}); event.stopPropagation();">✕</button>
+                            <div class="stream-controls">
+                                <div class="size-controls" onclick="event.stopPropagation();">
+                                    <button class="btn-size ${size === '1x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x1')" title="Small">1×1</button>
+                                    <button class="btn-size ${size === '2x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x1')" title="Wide">2×1</button>
+                                    <button class="btn-size ${size === '1x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x2')" title="Tall">1×2</button>
+                                    <button class="btn-size ${size === '2x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x2')" title="Large">2×2</button>
+                                </div>
+                                <button class="btn-remove" onclick="app.removeStream(${i}); event.stopPropagation();">✕</button>
+                            </div>
                         </div>
                         <div class="stream-footer">
                             <div class="audio-indicator">
@@ -250,7 +264,7 @@ const app = {
             return;
         }
 
-        const stream = { name, url };
+        const stream = { name, url, size: '1x1' }; // Add default size
 
         // Save to saved streams if checked
         if (shouldSave) {
@@ -281,6 +295,14 @@ const app = {
         }
         this.render();
         this.saveState();
+    },
+
+    setStreamSize(index, size) {
+        if (this.gridStreams[index]) {
+            this.gridStreams[index].size = size;
+            this.render();
+            this.saveState();
+        }
     },
 
     clearAll() {

@@ -370,6 +370,15 @@
             <div class="saved-streams-list" id="savedStreamsList"></div>
         </div>
 
+        <!-- Audio Control -->
+        <div class="card">
+            <h2 class="card-title">🔊 Audio Control</h2>
+            <div class="form-help" style="margin-bottom: 12px;">
+                Click to switch audio source (only one stream plays audio at a time)
+            </div>
+            <div id="audioControlList"></div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="card">
             <h2 class="card-title">⚡ Quick Actions</h2>
@@ -390,11 +399,13 @@
             gridLayout: '2x2',
             gridStreams: [],
             savedStreams: [],
+            activeAudioIndex: null,
 
             init() {
                 this.loadState();
                 this.renderLayouts();
                 this.renderSavedStreams();
+                this.renderAudioControl();
                 this.setupEventListeners();
 
                 // Listen for storage changes from viewer
@@ -403,6 +414,7 @@
                         this.loadState();
                         this.renderLayouts();
                         this.renderSavedStreams();
+                        this.renderAudioControl();
                     }
                 });
 
@@ -414,6 +426,7 @@
                 this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
                 this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
                 this.savedStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
+                this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
             },
 
             saveState() {
@@ -522,6 +535,55 @@
                         </div>
                     </div>
                 `).join('');
+            },
+
+            renderAudioControl() {
+                const container = document.getElementById('audioControlList');
+                const activeStreams = this.gridStreams.filter(s => s !== null);
+
+                if (activeStreams.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔇</div>
+                            <div>No active streams</div>
+                            <div style="font-size: 12px; margin-top: 8px;">Add streams to control audio</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.gridStreams.map((stream, index) => {
+                    if (!stream) return '';
+                    const isActive = index === this.activeAudioIndex;
+                    return `
+                        <div class="stream-item" style="cursor: pointer; ${isActive ? 'border: 2px solid #10B981;' : ''}"
+                             onclick="controlPanel.setAudio(${index})">
+                            <div class="stream-info">
+                                <div class="stream-name">
+                                    ${isActive ? '🔊' : '🔇'} ${this.escapeHtml(stream.name)}
+                                </div>
+                            </div>
+                            <div class="stream-actions">
+                                ${isActive ? '<span style="color: #10B981; font-weight: 600;">ACTIVE</span>' : '<span style="color: #64748B;">Click to activate</span>'}
+                            </div>
+                        </div>
+                    `;
+                }).filter(Boolean).join('');
+            },
+
+            setAudio(index) {
+                // Toggle audio: if clicking active stream, mute all. Otherwise, activate clicked stream
+                if (this.activeAudioIndex === index) {
+                    this.activeAudioIndex = null;
+                } else {
+                    this.activeAudioIndex = index;
+                }
+
+                localStorage.setItem('multistream_audio', this.activeAudioIndex);
+                this.renderAudioControl();
+
+                // Trigger storage event for viewer
+                window.dispatchEvent(new Event('storage'));
             },
 
             useStream(index) {
