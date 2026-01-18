@@ -347,6 +347,7 @@ const app = {
                     <iframe
                         class="stream-frame"
                         src="${embedUrl}${i === this.activeAudioIndex ? '' : '&mute=1'}"
+                        referrerpolicy="strict-origin-when-cross-origin"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen>
                     </iframe>
@@ -387,14 +388,9 @@ const app = {
         // YouTube - Use nocookie domain to avoid embedding restrictions
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const videoId = this.extractYouTubeId(url);
-            // Don't include origin parameter for file:// protocol (causes api.invalidparam error)
-            const isFileProtocol = window.location.protocol === 'file:';
-            const baseUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1&enablejsapi=1`;
-
-            if (!isFileProtocol && window.location.origin) {
-                return `${baseUrl}&origin=${encodeURIComponent(window.location.origin)}`;
-            }
-            return baseUrl;
+            // Minimal parameters to avoid api.invalidparam errors
+            // Note: Some videos may have embedding disabled by uploader
+            return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1`;
         }
 
         // Twitch - Handle both file:// and http(s):// protocols
@@ -426,6 +422,13 @@ const app = {
     },
 
     extractYouTubeId(url) {
+        // Handle youtube.com/live/VIDEO_ID format
+        if (url.includes('/live/')) {
+            const liveMatch = url.match(/\/live\/([a-zA-Z0-9_-]{11})/);
+            if (liveMatch) return liveMatch[1];
+        }
+
+        // Handle other YouTube URL formats
         const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const match = url.match(regExp);
         return (match && match[7].length === 11) ? match[7] : '';
