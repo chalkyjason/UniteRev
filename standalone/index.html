@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>Multi-Stream Manager - Watch Multiple Streams</title>
+    <title>AntifaTimes Stream Manager</title>
     <style>
         * {
             margin: 0;
@@ -490,31 +490,14 @@
         <div class="header">
             <div class="header-top">
                 <div class="logo">
-                    <span class="logo-icon">📺</span>
-                    <span>Multi-Stream Manager</span>
+                    <img src="logo.svg" alt="AntifaTimes" class="logo-icon" style="width: 48px; height: 48px; border-radius: 8px;">
+                    <span style="font-size: 24px; font-weight: 700;">AntifaTimes Stream Manager</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" onclick="app.openControlPanel()" title="Open control panel in separate window for multi-monitor setup">
-                        🎮 Control Panel
+                    <button class="btn btn-primary" onclick="app.openControlPanel()" title="Open control panel to manage streams on second monitor">
+                        🎮 Open Control Panel
                     </button>
-                    <button class="btn btn-secondary" onclick="app.clearAll()">Clear All</button>
-                    <button class="btn btn-primary" onclick="app.openModal()">+ Add Stream</button>
                 </div>
-            </div>
-
-            <!-- Layout Selector -->
-            <div class="layout-selector">
-                <span class="layout-label">Grid Layout:</span>
-                <button class="layout-btn" onclick="app.setLayout('1x1')">1×1</button>
-                <button class="layout-btn" onclick="app.setLayout('1x2')">1×2</button>
-                <button class="layout-btn" onclick="app.setLayout('2x1')">2×1</button>
-                <button class="layout-btn active" onclick="app.setLayout('2x2')">2×2</button>
-                <button class="layout-btn" onclick="app.setLayout('2x3')">2×3</button>
-                <button class="layout-btn" onclick="app.setLayout('3x2')">3×2</button>
-                <button class="layout-btn" onclick="app.setLayout('3x3')">3×3</button>
-                <button class="layout-btn" onclick="app.setLayout('4x2')">4×2</button>
-                <button class="layout-btn" onclick="app.setLayout('2x4')">2×4</button>
-                <button class="layout-btn" onclick="app.setLayout('4x4')">4×4</button>
             </div>
         </div>
 

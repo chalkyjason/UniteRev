@@ -133,10 +133,16 @@ const app = {
                             <div class="stream-title">${this.escapeHtml(stream.name)}</div>
                             <div class="stream-controls">
                                 <div class="size-controls" onclick="event.stopPropagation();">
-                                    <button class="btn-size ${size === '1x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x1')" title="Small">1×1</button>
-                                    <button class="btn-size ${size === '2x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x1')" title="Wide">2×1</button>
-                                    <button class="btn-size ${size === '1x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x2')" title="Tall">1×2</button>
-                                    <button class="btn-size ${size === '2x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x2')" title="Large">2×2</button>
+                                    <button class="btn-size ${size === '1x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x1')" title="1×1">1×1</button>
+                                    <button class="btn-size ${size === '2x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x1')" title="2×1">2×1</button>
+                                    <button class="btn-size ${size === '1x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x2')" title="1×2">1×2</button>
+                                    <button class="btn-size ${size === '2x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x2')" title="2×2">2×2</button>
+                                    <button class="btn-size ${size === '3x1' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '3x1')" title="3×1">3×1</button>
+                                    <button class="btn-size ${size === '1x3' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '1x3')" title="1×3">1×3</button>
+                                    <button class="btn-size ${size === '3x2' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '3x2')" title="3×2">3×2</button>
+                                    <button class="btn-size ${size === '2x3' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '2x3')" title="2×3">2×3</button>
+                                    <button class="btn-size ${size === '3x3' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '3x3')" title="3×3">3×3</button>
+                                    <button class="btn-size ${size === '4x4' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '4x4')" title="4×4">4×4</button>
                                 </div>
                                 <button class="btn-remove" onclick="app.removeStream(${i}); event.stopPropagation();">✕</button>
                             </div>
@@ -234,8 +240,42 @@ const app = {
         } else {
             this.activeAudioIndex = index;
         }
-        this.render();
+        this.updateAudioIndicators();
+        this.updateAudioStatus();
         this.saveState();
+    },
+
+    updateAudioIndicators() {
+        // Update audio indicators without reloading iframes
+        document.querySelectorAll('.stream-cell').forEach((cell, i) => {
+            const isActive = i === this.activeAudioIndex;
+            const audioIcon = cell.querySelector('.audio-icon');
+            const audioText = cell.querySelector('.audio-indicator span:last-child');
+
+            if (audioIcon && audioText) {
+                audioIcon.textContent = isActive ? '🔊' : '🔇';
+                audioIcon.classList.toggle('active', isActive);
+                audioText.textContent = isActive ? 'Audio ON' : 'Click for audio';
+            }
+
+            // Update active-audio class for red border
+            if (this.gridStreams[i]) {
+                cell.classList.toggle('active-audio', isActive);
+            }
+
+            // Update iframe mute parameter by reloading only if needed
+            const iframe = cell.querySelector('iframe');
+            if (iframe && this.gridStreams[i]) {
+                const stream = this.gridStreams[i];
+                const embedUrl = this.getEmbedUrl(stream.url);
+                const newSrc = `${embedUrl}${isActive ? '' : '&mute=1'}`;
+
+                // Only reload if mute state actually changed
+                if (iframe.src !== newSrc) {
+                    iframe.src = newSrc;
+                }
+            }
+        });
     },
 
     updateAudioStatus() {
