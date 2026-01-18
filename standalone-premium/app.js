@@ -387,8 +387,14 @@ const app = {
         // YouTube - Use nocookie domain to avoid embedding restrictions
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const videoId = this.extractYouTubeId(url);
-            // Use youtube-nocookie.com for better embedding support
-            return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1&enablejsapi=1&origin=${window.location.origin || 'null'}`;
+            // Don't include origin parameter for file:// protocol (causes api.invalidparam error)
+            const isFileProtocol = window.location.protocol === 'file:';
+            const baseUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1&enablejsapi=1`;
+
+            if (!isFileProtocol && window.location.origin) {
+                return `${baseUrl}&origin=${encodeURIComponent(window.location.origin)}`;
+            }
+            return baseUrl;
         }
 
         // Twitch - Handle both file:// and http(s):// protocols
