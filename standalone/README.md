@@ -6,20 +6,39 @@ Perfect for OBS users, streamers, or anyone who wants to monitor multiple stream
 
 ---
 
-## ⚡ Quick Start (10 Seconds!)
+## ⚡ Quick Start
 
-### Option 1: Double-Click (Easiest)
-1. **Download** this folder
-2. **Double-click** `index.html`
-3. **That's it!** The app opens in your browser
+> **⚠️ IMPORTANT for YouTube Streams:** Run the local server to avoid Error 153!
 
-### Option 2: Open from Browser
-1. Open Chrome, Firefox, or Edge
-2. Press `Ctrl+O` (or `Cmd+O` on Mac)
-3. Select `index.html`
-4. Done!
+### **RECOMMENDED: Run Local Server** (Works with YouTube)
 
-**No installation. No setup. No API keys. Just open and use!**
+**Mac/Linux:**
+```bash
+cd standalone
+./start-server.sh
+```
+Then open: `http://localhost:8000/index.html`
+
+**Windows:**
+```cmd
+cd standalone
+start-server.bat
+```
+Then open: `http://localhost:8000/index.html`
+
+**Why?** YouTube requires proper HTTP headers. The local server provides them, fixing "Error 153" issues.
+
+---
+
+### Alternative: Double-Click (Twitch/Facebook only)
+
+⚠️ **YouTube will NOT work** with this method due to Error 153
+
+1. Double-click `index.html`
+2. Works for Twitch, Facebook, Rumble
+3. YouTube videos will show "Error 153: Video player configuration error"
+
+**For YouTube, use the local server method above!**
 
 ---
 
@@ -36,10 +55,20 @@ Perfect for OBS users, streamers, or anyone who wants to monitor multiple stream
 
 ### Supported Stream URLs:
 
-✅ **YouTube**: `https://www.youtube.com/watch?v=VIDEO_ID`
+✅ **YouTube**:
+  - Regular: `https://www.youtube.com/watch?v=VIDEO_ID`
+  - Live: `https://www.youtube.com/live/VIDEO_ID`
+  - Short: `https://youtu.be/VIDEO_ID`
+
 ✅ **Twitch**: `https://www.twitch.tv/CHANNEL_NAME`
+
 ✅ **Facebook Live**: `https://www.facebook.com/video.php?v=...`
+
+✅ **Rumble**: `https://rumble.com/VIDEO_NAME.html`
+
 ✅ **Any embed URL**: Just paste it!
+
+**Note:** Some videos may have embedding disabled by the uploader. This is normal and cannot be bypassed.
 
 ### Grid Layouts:
 
@@ -281,6 +310,31 @@ To get updates:
 2. Replace the old files
 3. Refresh your browser
 4. Your saved streams will still be there!
+
+---
+
+## 🔧 Troubleshooting
+
+### YouTube Error 153: "Video player configuration error"
+
+**Cause:** Opening HTML file directly (`file://` protocol) doesn't send proper HTTP headers.
+
+**Fix:** Use the local server scripts:
+- Mac/Linux: Run `./start-server.sh`
+- Windows: Run `start-server.bat`
+- Then open: `http://localhost:8000/index.html`
+
+### "Video unavailable" or "Embedding disabled"
+
+**Cause:** The video uploader has disabled embedding.
+
+**Fix:** This cannot be bypassed. Try a different video or ask the uploader to enable embedding.
+
+### Some streams work, others don't
+
+This is normal! Each video owner decides whether to allow embedding. News channels and official live streams usually work great.
+
+**📖 For detailed troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
 
 ---
 
