@@ -461,8 +461,42 @@ const app = {
         } else {
             this.activeAudioIndex = index;
         }
-        this.render();
+        this.updateAudioIndicators();
+        this.updateAudioStatus();
         this.saveState();
+    },
+
+    updateAudioIndicators() {
+        // Update audio indicators without reloading iframes
+        document.querySelectorAll('.stream-cell').forEach((cell, i) => {
+            const isActive = i === this.activeAudioIndex;
+            const audioIcon = cell.querySelector('.audio-icon');
+            const audioText = cell.querySelector('.audio-indicator span:last-child');
+
+            if (audioIcon && audioText) {
+                audioIcon.textContent = isActive ? '🔊' : '🔇';
+                audioIcon.classList.toggle('active', isActive);
+                audioText.textContent = isActive ? 'Audio ON' : 'Click for audio';
+            }
+
+            // Update active-audio class for red border
+            if (this.gridStreams[i]) {
+                cell.classList.toggle('active-audio', isActive);
+            }
+
+            // Update iframe mute parameter by reloading only if needed
+            const iframe = cell.querySelector('iframe');
+            if (iframe && this.gridStreams[i]) {
+                const stream = this.gridStreams[i];
+                const embedUrl = this.getEmbedUrl(stream.url);
+                const newSrc = `${embedUrl}${isActive ? '' : '&mute=1'}`;
+
+                // Only reload if mute state actually changed
+                if (iframe.src !== newSrc) {
+                    iframe.src = newSrc;
+                }
+            }
+        });
     },
 
     updateAudioStatus() {
