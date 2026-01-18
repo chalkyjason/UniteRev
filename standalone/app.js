@@ -168,9 +168,16 @@ const app = {
         // Twitch - Handle both file:// and http(s):// protocols
         if (url.includes('twitch.tv')) {
             const channel = url.split('twitch.tv/')[1]?.split('/')[0];
-            // For file:// protocol, use localhost as parent
-            const parent = window.location.hostname || 'localhost';
-            return `https://player.twitch.tv/?channel=${channel}&parent=${parent}&autoplay=true`;
+            // Twitch requires exact parent domain match
+            // For localhost (including IPv6 [::]), always use 'localhost'
+            let parent = window.location.hostname;
+
+            // Handle various localhost scenarios
+            if (!parent || parent === '' || parent === '::1' || parent === '127.0.0.1' || parent.includes('::')) {
+                parent = 'localhost';
+            }
+
+            return `https://player.twitch.tv/?channel=${channel}&parent=${parent}&autoplay=true&muted=false`;
         }
 
         // Facebook Live
