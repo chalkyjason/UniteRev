@@ -43,60 +43,41 @@
 
 ---
 
-## Two Versions Available
+## ✨ Features
 
-### 1️⃣ **Standalone Version** (Easiest - START HERE!)
+### **Standalone Version** (Free & Simple!)
 
 **Just HTML + JavaScript - Works instantly**
 
-✅ Double-click to open
-✅ Add any stream URL (YouTube, Twitch, Facebook, etc.)
+✅ Double-click to open (or run local server for YouTube)
+✅ Add any stream URL (YouTube, Twitch, Facebook, Rumble, etc.)
 ✅ Save streams to your list
 ✅ Everything stored in browser
 ✅ No installation required
+✅ Multi-monitor control panel
 
 **Perfect for:**
 - Quick stream monitoring
 - OBS users
 - Anyone who wants simplicity
+- Streamers managing multiple feeds
 - No technical knowledge needed
 
 📂 **Location**: `standalone/` folder
 📖 **Guide**: [standalone/README.md](./standalone/README.md)
 
----
+### **Premium Version** (Optional Upgrade)
 
-### 2️⃣ **Full System** (Advanced Features)
+Upgrade for more features and support development:
 
-**Automated stream discovery with backend**
+✅ Up to 16 streams (vs 4 in free)
+✅ Unlimited saved streams (vs 10 in free)
+✅ All grid layouts unlocked
+✅ Priority support
+✅ One-time payment ($9.99)
 
-✅ Auto-discovers protest streams on YouTube & Twitch
-✅ Search and filter by keywords
-✅ Platform integration (APIs)
-✅ Database of streams
-✅ Docker deployment
-
-**Perfect for:**
-- Automated monitoring
-- Large-scale aggregation
-- Developers who want the full system
-
-📖 **Guide**: See [Full System Setup](#full-system-setup-advanced) below
-
----
-
-## Quick Comparison
-
-| Feature | Standalone | Full System |
-|---------|------------|-------------|
-| **Setup Time** | 10 seconds | 20 minutes |
-| **Installation** | None | Docker required |
-| **Add Streams** | Manual URLs | Auto-discovery + Manual |
-| **Best For** | Individuals, OBS | Organizations, Automation |
-| **Cost** | FREE | FREE |
-| **Technical Level** | Anyone | Basic computer skills |
-
-**95% of users should use the Standalone version!**
+📂 **Location**: `standalone-premium/` folder
+📖 **Guide**: [QUICK_START_SELLING.md](./QUICK_START_SELLING.md)
 
 ---
 
@@ -232,61 +213,13 @@ Works with any embeddable video:
 
 ---
 
-## Full System Setup (Advanced)
-
-*Only needed if you want automated stream discovery*
-
-<details>
-<summary><b>Click to expand full setup instructions</b></summary>
-
-### Prerequisites
-- Docker Desktop
-- YouTube Data API key
-- Twitch API credentials
-
-### Setup Steps
-
-1. **Install Docker Desktop**
-   - Mac: [Download](https://desktop.docker.com/mac/main/amd64/Docker.dmg)
-   - Windows: [Download](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
-
-2. **Get API Keys**
-   - YouTube: https://console.cloud.google.com/apis/credentials
-   - Twitch: https://dev.twitch.tv/console/apps
-
-3. **Run Setup Script**
-   ```bash
-   # Mac/Linux
-   chmod +x setup.sh
-   ./setup.sh
-
-   # Windows
-   .\setup.bat
-   ```
-
-4. **Access the App**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-
-### Features
-- Auto-discovers YouTube & Twitch protest streams
-- Search by keywords and location
-- Platform filtering
-- Trust scoring
-- Stream archival
-
-See [QUICK_START.md](./QUICK_START.md) for detailed instructions.
-
-</details>
-
----
-
 ## 🆘 Need Help?
 
 1. **Check the README** - Most answers are here
-2. **Standalone issues** - See [standalone/README.md](./standalone/README.md)
-3. **Full system issues** - See [QUICK_START.md](./QUICK_START.md)
-4. **Still stuck?** - Open a GitHub issue
+2. **Standalone version** - See [standalone/README.md](./standalone/README.md)
+3. **YouTube Error 153** - See [standalone/TROUBLESHOOTING.md](./standalone/TROUBLESHOOTING.md)
+4. **Premium version** - See [QUICK_START_SELLING.md](./QUICK_START_SELLING.md)
+5. **Still stuck?** - Open a GitHub issue
 
 ---
 
