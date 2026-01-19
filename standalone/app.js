@@ -160,6 +160,20 @@ const app = {
             }
         }
 
+        // X (Twitter)
+        if (url.includes('x.com') || url.includes('twitter.com')) {
+            // Extract username from /USERNAME/status/ID format
+            const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/]+)/);
+            if (usernameMatch) {
+                const handle = usernameMatch[1];
+                return {
+                    platform: 'x',
+                    handle: '@' + handle,
+                    id: `x:@${handle}`
+                };
+            }
+        }
+
         // Default/unknown
         return {
             platform: 'unknown',
@@ -447,6 +461,16 @@ const app = {
             return `https://rumble.com/embed/${videoId}/?pub=4`;
         }
 
+        // X (Twitter)
+        if (url.includes('x.com') || url.includes('twitter.com')) {
+            // Extract tweet ID from /status/ID format
+            const tweetMatch = url.match(/status\/(\d+)/);
+            if (tweetMatch) {
+                const tweetId = tweetMatch[1];
+                return `https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=dark`;
+            }
+        }
+
         // Direct iframe src
         if (url.includes('iframe') || url.includes('embed')) {
             return url;
@@ -603,6 +627,7 @@ const app = {
                 'youtube': '▶️',
                 'facebook': '👍',
                 'rumble': '🎥',
+                'x': '𝕏',
                 'unknown': '📺'
             };
 

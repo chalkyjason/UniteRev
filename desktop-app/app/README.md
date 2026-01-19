@@ -55,6 +55,7 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
 |----------|-----------|---------|
 | **YouTube** | `youtube.com/watch?v=ID`<br>`youtube.com/live/ID`<br>`youtube.com/@channel` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
 | **Twitch** | `twitch.tv/channel` | `https://twitch.tv/hasanabi` |
+| **X (Twitter)** | `x.com/user/status/ID`<br>`twitter.com/user/status/ID` | `https://x.com/user/status/123456` |
 | **Facebook Live** | `facebook.com/username/videos/ID` | `https://www.facebook.com/user/videos/123456` |
 | **Rumble** | `rumble.com/video-id` | `https://rumble.com/v12345-video-title.html` |
 
@@ -236,6 +237,12 @@ All data is stored in browser localStorage:
 - Video URLs (`/watch?v=`, `/live/`): Uses oEmbed API to resolve channel
 - Channel URLs (`/@handle`, `/channel/ID`): Direct extraction
 - Saves as `youtube:@handle` or `youtube:CHANNEL_ID`
+
+**X (Twitter)**:
+- Direct extraction from URL: `x.com/USERNAME/status/ID` or `twitter.com/USERNAME/status/ID`
+- Extracts username from tweet URL
+- Saves as `x:@USERNAME`
+- Embeds using Twitter's iframe embed player with dark theme
 
 **Others**:
 - Falls back to basic URL parsing

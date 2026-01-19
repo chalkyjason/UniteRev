@@ -377,7 +377,7 @@
                 <label class="form-label">Stream URL</label>
                 <input type="url" class="form-input" id="streamUrl" placeholder="https://www.youtube.com/watch?v=...">
                 <div class="form-help">
-                    Supports: YouTube, Twitch, Facebook Live, Rumble
+                    Supports: YouTube, Twitch, X (Twitter), Facebook Live, Rumble
                 </div>
             </div>
 
@@ -512,6 +512,14 @@
                     if (channelMatch) {
                         const channelId = channelMatch[1];
                         return { platform: 'youtube', handle: channelId, id: `youtube:${channelId}` };
+                    }
+                }
+                // X (Twitter)
+                if (url.includes('x.com') || url.includes('twitter.com')) {
+                    const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/]+)/);
+                    if (usernameMatch) {
+                        const handle = usernameMatch[1];
+                        return { platform: 'x', handle: '@' + handle, id: `x:@${handle}` };
                     }
                 }
                 // Default
@@ -702,6 +710,7 @@
                     'youtube': '▶️',
                     'facebook': '👍',
                     'rumble': '🎥',
+                    'x': '𝕏',
                     'unknown': '📺'
                 };
 
