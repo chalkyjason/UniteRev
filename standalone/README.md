@@ -23,7 +23,23 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
 
 ## Quick Start
 
-1. **Run the server** (required for proper iframe embedding):
+### Easy Launch (One-Click)
+
+**Just double-click the launcher for your platform:**
+
+- **Linux/Mac**: Double-click `launch.sh` (or run `./launch.sh` in terminal)
+- **Windows**: Double-click `launch.bat`
+
+This will:
+- ✅ Start the local server
+- ✅ Automatically open your browser to the app
+- ✅ You're ready to add streams!
+
+### Manual Start
+
+If you prefer to start manually:
+
+1. **Run the server** (required for proper embedding):
    ```bash
    # Linux/Mac
    ./start-server.sh
@@ -38,7 +54,9 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
    ```
    (If port 8000 is in use, the script will auto-detect the next available port)
 
-3. **Add streams**:
+### Using the App
+
+1. **Add streams**:
    - Click any empty slot or the "Add Stream" button
    - Enter stream name and URL (YouTube, Twitch, Facebook, Rumble)
    - Optionally check "Save streamer to my list" to save the streamer/channel
