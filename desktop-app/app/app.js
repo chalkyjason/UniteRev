@@ -437,7 +437,9 @@ const app = {
                             src="${this.escapeHtml(stream.url)}"
                             ${i === this.activeAudioIndex ? '' : 'muted'}
                             allowpopups
-                            partition="persist:stream">
+                            partition="persist:stream"
+                            webpreferences="contextIsolation=no"
+                            disablewebsecurity>
                         </webview>
                     </div>
                     <div class="stream-overlay">
@@ -729,6 +731,22 @@ const app = {
     setupWebviewListeners() {
         // Setup event listeners for all webviews
         document.querySelectorAll('webview').forEach((webview, index) => {
+            // Grant permissions for clipboard, media, etc.
+            webview.addEventListener('permission-request', (e) => {
+                // Allow clipboard, media devices, fullscreen, etc.
+                if (e.permission === 'clipboard-read' ||
+                    e.permission === 'clipboard-write' ||
+                    e.permission === 'clipboard-sanitized-write' ||
+                    e.permission === 'media' ||
+                    e.permission === 'mediaKeySystem' ||
+                    e.permission === 'geolocation' ||
+                    e.permission === 'notifications' ||
+                    e.permission === 'fullscreen' ||
+                    e.permission === 'pointerLock') {
+                    e.request.allow();
+                }
+            });
+
             // Update URL bar when navigation occurs
             webview.addEventListener('did-navigate', (e) => {
                 const urlInput = document.getElementById(`url-${index}`);
