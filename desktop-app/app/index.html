@@ -180,6 +180,71 @@
             border: none;
         }
 
+        /* Webview Container and Navigation */
+        .webview-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .webview-nav {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #334155;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            padding: 4px 8px;
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid #475569;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: #64748b;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .webview-url {
+            flex: 1;
+            padding: 4px 8px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #475569;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .webview-url:focus {
+            outline: none;
+            border-color: #3B82F6;
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .webview-container webview {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        webview.loading {
+            opacity: 0.7;
+        }
+
         /* Stream Overlay */
         .stream-overlay {
             position: absolute;
