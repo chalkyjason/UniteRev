@@ -56,6 +56,7 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
 | **YouTube** | `youtube.com/watch?v=ID`<br>`youtube.com/live/ID`<br>`youtube.com/@channel` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
 | **Twitch** | `twitch.tv/channel` | `https://twitch.tv/hasanabi` |
 | **X (Twitter)** | `x.com/user/status/ID`<br>`twitter.com/user/status/ID` | `https://x.com/user/status/123456` |
+| **TikTok** | `tiktok.com/@user/video/ID`<br>`tiktok.com/@user/live` | `https://www.tiktok.com/@user/video/123456`<br>`https://www.tiktok.com/@user/live` |
 | **Facebook Live** | `facebook.com/username/videos/ID` | `https://www.facebook.com/user/videos/123456` |
 | **Rumble** | `rumble.com/video-id` | `https://rumble.com/v12345-video-title.html` |
 
@@ -243,6 +244,14 @@ All data is stored in browser localStorage:
 - Extracts username from tweet URL
 - Saves as `x:@USERNAME`
 - Embeds using Twitter's iframe embed player with dark theme
+
+**TikTok**:
+- For videos: Extracts video ID from `/video/ID` format
+- For lives: Extracts username from `/@username/live` format
+- Uses TikTok oEmbed API to resolve user info
+- Saves as `tiktok:@USERNAME`
+- Videos embed using `tiktok.com/embed/v2/{videoId}`
+- **Note**: TikTok Live streams have limited iframe support and may require opening in browser
 
 **Others**:
 - Falls back to basic URL parsing

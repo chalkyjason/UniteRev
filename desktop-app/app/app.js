@@ -174,6 +174,20 @@ const app = {
             }
         }
 
+        // TikTok
+        if (url.includes('tiktok.com')) {
+            // Extract username from /@username/ format
+            const usernameMatch = url.match(/@([^\/\?]+)/);
+            if (usernameMatch) {
+                const handle = usernameMatch[1];
+                return {
+                    platform: 'tiktok',
+                    handle: '@' + handle,
+                    id: `tiktok:@${handle}`
+                };
+            }
+        }
+
         // Default/unknown
         return {
             platform: 'unknown',
@@ -221,6 +235,41 @@ const app = {
         }
     },
 
+    // Resolve TikTok user info using oEmbed
+    async resolveTikTokStreamer(videoUrl) {
+        try {
+            const endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
+            const response = await fetch(endpoint);
+
+            if (!response.ok) {
+                throw new Error('TikTok oEmbed request failed');
+            }
+
+            const data = await response.json();
+
+            // Extract username from author_url if available
+            let handle = 'unknown';
+            if (data.author_url) {
+                const handleMatch = data.author_url.match(/@([^\/\?]+)/);
+                if (handleMatch) {
+                    handle = '@' + handleMatch[1];
+                }
+            }
+
+            return {
+                id: `tiktok:${handle}`,
+                platform: 'tiktok',
+                handle: handle,
+                displayName: data.author_name || data.author_unique_id || 'Unknown TikToker',
+                profileUrl: data.author_url || videoUrl,
+                createdAt: Date.now()
+            };
+        } catch (error) {
+            console.error('Failed to resolve TikTok streamer:', error);
+            return null;
+        }
+    },
+
     // Save streamer from current video URL
     async saveStreamerFromUrl(url, customName = null) {
         let streamer = null;
@@ -255,6 +304,25 @@ const app = {
                 profileUrl: url,
                 createdAt: Date.now()
             };
+        }
+        // TikTok - use oEmbed for video/live URLs
+        else if (url.includes('tiktok.com')) {
+            streamer = await this.resolveTikTokStreamer(url);
+            if (streamer && customName) {
+                streamer.displayName = customName;
+            }
+            // If oEmbed fails, fall back to basic extraction
+            if (!streamer) {
+                const platformInfo = this.extractPlatformInfo(url);
+                streamer = {
+                    id: platformInfo.id,
+                    platform: 'tiktok',
+                    handle: platformInfo.handle,
+                    displayName: customName || platformInfo.handle,
+                    profileUrl: url,
+                    createdAt: Date.now()
+                };
+            }
         }
         // Other platforms
         else {
@@ -471,6 +539,20 @@ const app = {
             }
         }
 
+        // TikTok
+        if (url.includes('tiktok.com')) {
+            // Extract video ID from /video/ID format
+            const videoMatch = url.match(/\/video\/(\d+)/);
+            if (videoMatch) {
+                const videoId = videoMatch[1];
+                return `https://www.tiktok.com/embed/v2/${videoId}`;
+            }
+            // For live streams or short links, use oEmbed approach
+            // Note: TikTok live streams have limited iframe support
+            // They work best opened in a new window/tab
+            return url; // Will attempt to load as-is, may need user interaction
+        }
+
         // Direct iframe src
         if (url.includes('iframe') || url.includes('embed')) {
             return url;
@@ -628,6 +710,7 @@ const app = {
                 'facebook': '👍',
                 'rumble': '🎥',
                 'x': '𝕏',
+                'tiktok': '🎵',
                 'unknown': '📺'
             };
 

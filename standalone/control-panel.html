@@ -377,7 +377,7 @@
                 <label class="form-label">Stream URL</label>
                 <input type="url" class="form-input" id="streamUrl" placeholder="https://www.youtube.com/watch?v=...">
                 <div class="form-help">
-                    Supports: YouTube, Twitch, X (Twitter), Facebook Live, Rumble
+                    Supports: YouTube, Twitch, X (Twitter), TikTok, Facebook Live, Rumble
                 </div>
             </div>
 
@@ -522,6 +522,14 @@
                         return { platform: 'x', handle: '@' + handle, id: `x:@${handle}` };
                     }
                 }
+                // TikTok
+                if (url.includes('tiktok.com')) {
+                    const usernameMatch = url.match(/@([^\/\?]+)/);
+                    if (usernameMatch) {
+                        const handle = usernameMatch[1];
+                        return { platform: 'tiktok', handle: '@' + handle, id: `tiktok:@${handle}` };
+                    }
+                }
                 // Default
                 return { platform: 'unknown', handle: 'unknown', id: `unknown:${Date.now()}` };
             },
@@ -551,6 +559,33 @@
                     };
                 } catch (error) {
                     console.error('YouTube oEmbed failed:', error);
+                    return null;
+                }
+            },
+
+            async resolveTikTokStreamer(videoUrl) {
+                try {
+                    const endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error('TikTok oEmbed failed');
+                    const data = await response.json();
+
+                    let handle = 'unknown';
+                    if (data.author_url) {
+                        const handleMatch = data.author_url.match(/@([^\/\?]+)/);
+                        if (handleMatch) handle = '@' + handleMatch[1];
+                    }
+
+                    return {
+                        id: `tiktok:${handle}`,
+                        platform: 'tiktok',
+                        handle: handle,
+                        displayName: data.author_name || data.author_unique_id || 'Unknown TikToker',
+                        profileUrl: data.author_url || videoUrl,
+                        createdAt: Date.now()
+                    };
+                } catch (error) {
+                    console.error('TikTok oEmbed failed:', error);
                     return null;
                 }
             },
@@ -586,6 +621,23 @@
                         profileUrl: url,
                         createdAt: Date.now()
                     };
+                }
+                // TikTok - use oEmbed
+                else if (url.includes('tiktok.com')) {
+                    streamer = await this.resolveTikTokStreamer(url);
+                    if (streamer && customName) streamer.displayName = customName;
+                    // Fallback if oEmbed fails
+                    if (!streamer) {
+                        const platformInfo = this.extractPlatformInfo(url);
+                        streamer = {
+                            id: platformInfo.id,
+                            platform: 'tiktok',
+                            handle: platformInfo.handle,
+                            displayName: customName || platformInfo.handle,
+                            profileUrl: url,
+                            createdAt: Date.now()
+                        };
+                    }
                 }
                 // Other platforms
                 else {
@@ -711,6 +763,7 @@
                     'facebook': '👍',
                     'rumble': '🎥',
                     'x': '𝕏',
+                    'tiktok': '🎵',
                     'unknown': '📺'
                 };
 
