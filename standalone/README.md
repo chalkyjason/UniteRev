@@ -1,386 +1,348 @@
-# Multi-Stream Manager 📺
+# AntifaTimes Stream Manager
+
+Multi-platform live stream viewer with multi-monitor support, drag-and-drop reordering, and streamer management.
+
+## Features
+
+### Core Features
+- **Multi-Stream Grid**: Watch up to 16 streams simultaneously in customizable grid layouts (1×1 to 4×4)
+- **Drag-and-Drop Reordering**: Click and drag the `⋮⋮` handle to reorder streams
+- **Custom Stream Sizing**: Resize individual streams from 1×1 to 4×4 grid cells
+- **Multi-Monitor Support**: Control panel opens in a separate window for dual-monitor setups
+- **Streamer Management**: Save and organize streamers/channels, not just individual streams
+- **Platform Detection**: Automatically extracts channel info from Twitch, YouTube, and more
+- **Audio Control**: Switch audio between streams without stopping playback
+- **Zero Backend**: Everything runs client-side using browser localStorage
+
+### New in This Version
+✨ **Drag & Drop**: Reorder streams by dragging the `⋮⋮` handle
+💾 **Save Streamers**: Save streamer/channel info instead of just stream URLs
+🔍 **Smart Detection**: YouTube oEmbed integration auto-detects channel names
+🎯 **Platform Icons**: Visual platform indicators (💜 Twitch, ▶️ YouTube, etc.)
+📌 **Save from Grid**: Click the 💾 button on any active stream to save that streamer
+
+## Quick Start
+
+1. **Run the server** (required for proper iframe embedding):
+   ```bash
+   # Linux/Mac
+   ./start-server.sh
+
+   # Windows
+   start-server.bat
+   ```
+
+2. **Open your browser**:
+   ```
+   http://localhost:8000
+   ```
+   (If port 8000 is in use, the script will auto-detect the next available port)
+
+3. **Add streams**:
+   - Click any empty slot or the "Add Stream" button
+   - Enter stream name and URL (YouTube, Twitch, Facebook, Rumble)
+   - Optionally check "Save streamer to my list" to save the streamer/channel
+   - Click "Add to Grid"
+
+4. **Open Control Panel** (for multi-monitor setup):
+   - Click "🎮 Open Control Panel" button
+   - Move control panel to your second monitor
+   - Add/remove streams and control audio from the panel
+
+## Supported Platforms
 
-**The simplest way to watch multiple streams at once - No installation required!**
+| Platform | URL Format | Example |
+|----------|-----------|---------|
+| **YouTube** | `youtube.com/watch?v=ID`<br>`youtube.com/live/ID`<br>`youtube.com/@channel` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
+| **Twitch** | `twitch.tv/channel` | `https://twitch.tv/hasanabi` |
+| **X (Twitter)** | `x.com/user/status/ID`<br>`twitter.com/user/status/ID` | `https://x.com/user/status/123456` |
+| **TikTok** | `tiktok.com/@user/video/ID`<br>`tiktok.com/@user/live` | `https://www.tiktok.com/@user/video/123456`<br>`https://www.tiktok.com/@user/live` |
+| **Facebook Live** | `facebook.com/username/videos/ID` | `https://www.facebook.com/user/videos/123456` |
+| **Rumble** | `rumble.com/video-id` | `https://rumble.com/v12345-video-title.html` |
 
-Perfect for OBS users, streamers, or anyone who wants to monitor multiple streams simultaneously.
+## How to Use
 
----
+### Adding Streams
 
-## ⚡ Quick Start
+1. **Quick Add**: Click an empty grid slot → Enter name and URL → Add
+2. **From Control Panel**: Use the "Add Stream" form in the control panel
+3. **From Saved Streamers**: Click "Use" on any saved streamer
 
-> **⚠️ IMPORTANT for YouTube Streams:** Run the local server to avoid Error 153!
+### Managing Streamers
 
-### **RECOMMENDED: Run Local Server** (Works with YouTube)
+**What's a "Streamer" vs "Stream"?**
+- **Stream**: A single video/live URL (e.g., specific YouTube video)
+- **Streamer**: The channel/account itself (e.g., YouTube channel, Twitch user)
 
-**Mac/Linux:**
-```bash
-cd standalone
-./start-server.sh
-```
-Then open: `http://localhost:8000/index.html`
+**Saving Streamers**:
+- Check "Save streamer to my list" when adding a stream
+- Or click the 💾 button on any active stream tile
+- YouTube videos automatically resolve to the channel name using oEmbed
 
-**Windows:**
-```cmd
-cd standalone
-start-server.bat
-```
-Then open: `http://localhost:8000/index.html`
+**Using Saved Streamers**:
+- Open the "Add Stream" modal
+- Scroll to "💾 My Saved Streamers"
+- Click "Use" to add the streamer's profile/channel URL to the grid
 
-**Why?** YouTube requires proper HTTP headers. The local server provides them, fixing "Error 153" issues.
+**Platform Info**:
+- Saved streamers show platform emoji and handle
+- Example: `💜 hasanabi` (twitch · hasanabi)
 
----
+### Reordering Streams (Drag & Drop)
 
-### Alternative: Double-Click (Twitch/Facebook only)
+1. Hover over any stream tile
+2. Click and hold the `⋮⋮` drag handle (top-left corner)
+3. Drag the stream to a new position
+4. Release to drop
 
-⚠️ **YouTube will NOT work** with this method due to Error 153
+**Tips**:
+- Only the drag handle (`⋮⋮`) is draggable - clicking elsewhere won't drag
+- Empty slots cannot be dragged
+- Reordering preserves custom sizes and audio selection
 
-1. Double-click `index.html`
-2. Works for Twitch, Facebook, Rumble
-3. YouTube videos will show "Error 153: Video player configuration error"
+### Resizing Streams
 
-**For YouTube, use the local server method above!**
+Each stream has size buttons in the top-right corner:
+- **1×1**: Standard single cell
+- **2×1, 1×2**: Two cells wide or tall
+- **2×2**: Four-cell square
+- **3×1, 1×3, 3×2, 2×3**: Larger configurations
+- **3×3, 4×4**: Massive tiles
 
----
+**Tip**: Use large sizes for your main stream and smaller ones for context streams.
 
-## 🎬 How to Use
+### Audio Control
 
-### Add Your First Stream:
+**From Main Viewer**:
+- Click any stream tile to toggle its audio
+- Only one stream can have audio at a time
+- Active audio stream has a red pulsing border
+- Current audio source shown in bottom-left corner
 
-1. **Click "+ Add Stream"** (blue button top right)
-2. **Enter a name**: "My Stream" or "Protest Feed"
-3. **Paste the URL**: YouTube, Twitch, Facebook Live, etc.
-4. **Click "Add to Grid"**
+**From Control Panel**:
+- Scroll to "🔊 Audio Control" section
+- Click any active stream to switch audio
+- Active stream highlighted in green
 
-**Boom! Your stream appears in the grid** 🎉
+**Important**: Audio switching does **not** reload the video - playback continues uninterrupted.
 
-### Supported Stream URLs:
+### Grid Layouts
 
-✅ **YouTube**:
-  - Regular: `https://www.youtube.com/watch?v=VIDEO_ID`
-  - Live: `https://www.youtube.com/live/VIDEO_ID`
-  - Short: `https://youtu.be/VIDEO_ID`
+Available layouts (from Control Panel):
+- 1×1, 1×2, 2×1 (1-2 streams)
+- 2×2 (4 streams)
+- 2×3, 3×2 (6 streams)
+- 3×3 (9 streams)
+- 4×2, 2×4 (8 streams)
+- 4×4 (16 streams)
 
-✅ **Twitch**: `https://www.twitch.tv/CHANNEL_NAME`
+Changing layouts preserves as many streams as possible. Streams beyond the new grid size are removed.
 
-✅ **Facebook Live**: `https://www.facebook.com/video.php?v=...`
+### Multi-Monitor Setup
 
-✅ **Rumble**: `https://rumble.com/VIDEO_NAME.html`
+1. Click "🎮 Open Control Panel"
+2. Drag the control panel window to your second monitor
+3. Keep the main viewer fullscreen on your primary monitor
+4. Manage streams, audio, and layout from the control panel
 
-✅ **Any embed URL**: Just paste it!
+**Synchronization**: Changes in the control panel instantly update the main viewer via localStorage events.
 
-**Note:** Some videos may have embedding disabled by the uploader. This is normal and cannot be bypassed.
+## Troubleshooting
 
-### Grid Layouts:
+### YouTube Error 153 / "This video can't be played"
 
-Choose from **10 different layouts**:
-- **1×1** - Single stream (fullscreen)
-- **2×2** - 4 streams (quad view) - **Default**
-- **3×3** - 9 streams
-- **4×4** - 16 streams (maximum)
-- Plus: 1×2, 2×1, 2×3, 3×2, 4×2, 2×4
+YouTube requires proper HTTP referrer headers. **Solution**:
+1. Run the local server (`start-server.sh` or `start-server.bat`)
+2. Access via `http://localhost:PORT`, **not** `file://`
+3. Some videos have embedding disabled by the uploader - nothing we can do
 
-Click the layout buttons at the top to change instantly!
+### Twitch "This embed is misconfigured"
 
-### Audio Control:
+Fixed automatically. The app handles all localhost variations (IPv6, IPv4) correctly.
 
-🔊 **Click any stream** to activate its audio
-- A **RED BORDER** appears around the active stream
-- Only ONE stream plays audio at a time
-- Click another stream to switch audio
-- Click the same stream to mute
+### Port Already in Use
 
-### Save Streams for Later:
+The start scripts auto-detect available ports. If port 8000 is in use, they'll try 8001, 8002, etc.
 
-1. When adding a stream, check **"Save to my stream list"**
-2. Your stream appears in "My Saved Streams"
-3. Click **"Use"** to add it to the grid anytime
-4. Click **"Delete"** to remove from saved list
+### Stream Not Loading
 
-**Your saved streams persist forever** (stored in browser)
+- Check if the URL is correct
+- Verify the stream is actually live
+- Try a different browser
+- Check browser console for errors
 
----
+### Saved Streamers Not Showing
 
-## 💡 Use Cases
+- Old "Saved Streams" auto-migrate to "Saved Streamers" on first load
+- If using multiple browsers/devices, streamers are stored per-browser (localStorage)
 
-### For Streamers (OBS Users):
-- Monitor your own stream + chat + alerts
-- Keep an eye on competitor streams
-- Display multiple camera angles
-- Watch for stream issues in real-time
-
-### For Activists:
-- Monitor multiple protest streams simultaneously
-- Switch audio between different locations
-- Save frequently-watched channels
-- Quick access to breaking events
+### Audio Not Switching
 
-### For Researchers:
-- Compare multiple live sources
-- Document multiple angles of an event
-- Cross-reference streams
-- Archive links for later analysis
+- Make sure you're clicking the stream tile, not just the overlay buttons
+- Or use the Control Panel's "Audio Control" section
+- Check browser console for errors
 
-### For Content Creators:
-- Watch inspiration while you work
-- Monitor multiple topics/niches
-- Keep streams on a second monitor
-- Quick comparison tool
+### Drag & Drop Not Working
 
----
+- Make sure you're dragging from the `⋮⋮` handle (top-left of each stream)
+- Empty slots cannot be dragged
+- If SortableJS fails to load, check your internet connection
 
-## ⌨️ Keyboard Shortcuts
+## Data Storage
 
-| Key | Action |
-|-----|--------|
-| `Esc` | Close modal |
-| `Enter` | Add stream (when in form) |
+All data is stored in browser localStorage:
 
----
+| Key | Description |
+|-----|-------------|
+| `multistream_layout` | Current grid layout (e.g., "2x2") |
+| `multistream_grid` | Array of active streams with positions and sizes |
+| `multistream_streamers` | Array of saved streamer/channel objects |
+| `multistream_audio` | Index of active audio stream |
 
-## 💾 Data Storage
-
-**Everything saves automatically to your browser:**
-- ✅ Grid layout preference (2x2, 3x3, etc.)
-- ✅ All streams in your grid
-- ✅ Which stream has audio
-- ✅ Your saved stream list
-
-**Refresh the page** - everything stays exactly as you left it!
-
-**Clear your data**: Click "Clear All" or clear your browser's localStorage
-
----
-
-## 🎯 Pro Tips
-
-### For Best Performance:
-- ✅ Use **Chrome** or **Edge** (best compatibility)
-- ✅ Close other tabs (saves CPU)
-- ✅ Start with **2×2** on laptops, **4×4** on desktop
-- ✅ Good internet: 10 Mbps per stream
-
-### For OBS:
-1. Add a **Browser Source**
-2. Set URL to: `file:///path/to/index.html`
-3. Set size to match your scene
-4. Audio is controlled by clicking streams
-
-### For Multi-Monitor:
-- Open multiple instances
-- Different layout per monitor
-- Drag window to fullscreen on second display
-
----
-
-## 🔧 Troubleshooting
-
-### Stream won't load?
-- Check the URL is correct
-- Try opening the URL directly first
-- Some streams block embedding - nothing we can do
-- Make sure it's a LIVE stream, not a VOD
-
-### Audio not working?
-- Click the stream to activate audio
-- Only ONE stream plays audio at a time
-- Check your browser isn't muted
-- Some streams don't have audio tracks
-
-### Page won't open?
-- Make sure you're opening `index.html`
-- Try a different browser (Chrome works best)
-- Check the file downloaded completely
-
-### Grid looks wrong?
-- Click a different layout button
-- Refresh the page
-- Clear your browser cache
-
----
-
-## 🌐 Browser Compatibility
-
-| Browser | Support |
-|---------|---------|
-| Chrome | ✅ Excellent |
-| Edge | ✅ Excellent |
-| Firefox | ✅ Good |
-| Safari | ⚠️ Limited (some streams may not work) |
-| Brave | ✅ Excellent |
-
----
-
-## 📱 Mobile Support
-
-**Works on tablets and phones!**
-- Layout auto-adjusts
-- Touch to select audio
-- Pinch to zoom (if needed)
-- Best on iPad or Android tablets
-
----
-
-## 🚀 Advanced Usage
-
-### Custom Embed URLs:
-
-You can paste ANY embed URL:
-```
-https://player.twitch.tv/?channel=CHANNEL&parent=localhost
-https://www.youtube.com/embed/VIDEO_ID?autoplay=1
+**Data Format - Saved Streamer**:
+```json
+{
+  "id": "twitch:hasanabi",
+  "platform": "twitch",
+  "handle": "hasanabi",
+  "displayName": "HasanAbi",
+  "profileUrl": "https://twitch.tv/hasanabi",
+  "createdAt": 1234567890123
+}
 ```
 
-### Multiple Instances:
+**Migration**: Old `multistream_saved` (stream URLs) automatically converts to `multistream_streamers` (streamer objects).
 
-Open `index.html` multiple times for:
-- Different stream sets
-- Different layouts
-- Separate windows
+## Keyboard Shortcuts
 
-### Export/Import Streams:
+- **Enter**: Submit stream form (when focused on input)
+- **Escape**: Close modal
+- **Ctrl/Cmd+R**: Reload viewer (from Control Panel's View menu)
 
-Your data is in browser localStorage:
-- **Export**: Open DevTools → Application → localStorage → Copy
-- **Import**: Paste into another browser's localStorage
+## Browser Compatibility
 
----
+- ✅ Chrome/Edge (recommended)
+- ✅ Firefox
+- ✅ Safari
+- ⚠️ Mobile browsers (limited due to iframe autoplay policies)
 
-## ⚙️ System Requirements
+## Technical Details
 
-| Component | Requirement |
-|-----------|-------------|
-| **Browser** | Chrome 90+, Edge 90+, Firefox 88+ |
-| **RAM** | 2GB minimum, 8GB recommended |
-| **Internet** | 10 Mbps per stream |
-| **Disk** | None! Runs entirely in browser |
+### Platform Detection Logic
 
-**More streams = More RAM & bandwidth needed**
+**Twitch**:
+- Direct extraction from URL: `twitch.tv/CHANNEL`
+- Saves as `twitch:CHANNEL`
 
----
+**YouTube**:
+- Video URLs (`/watch?v=`, `/live/`): Uses oEmbed API to resolve channel
+- Channel URLs (`/@handle`, `/channel/ID`): Direct extraction
+- Saves as `youtube:@handle` or `youtube:CHANNEL_ID`
 
-## 🆚 vs. Other Solutions
+**X (Twitter)**:
+- Direct extraction from URL: `x.com/USERNAME/status/ID` or `twitter.com/USERNAME/status/ID`
+- Extracts username from tweet URL
+- Saves as `x:@USERNAME`
+- Embeds using Twitter's iframe embed player with dark theme
 
-### This App:
-✅ No installation
-✅ No login/account
-✅ No API keys
-✅ Works offline (once opened)
-✅ 100% free
-✅ No ads
-✅ Privacy-first (nothing sent to servers)
+**TikTok**:
+- For videos: Extracts video ID from `/video/ID` format
+- For lives: Extracts username from `/@username/live` format
+- Uses TikTok oEmbed API to resolve user info
+- Saves as `tiktok:@USERNAME`
+- Videos embed using `tiktok.com/embed/v2/{videoId}`
+- **Note**: TikTok Live streams have limited iframe support and may require opening in browser
 
-### Other Tools:
-❌ Require account creation
-❌ Monthly subscription
-❌ Limited free tier
-❌ Ads and tracking
-❌ Complex setup
+**Others**:
+- Falls back to basic URL parsing
+- Saves as `unknown:timestamp`
 
----
+### YouTube oEmbed
 
-## 🛡️ Privacy & Security
+When you add a YouTube video URL with "Save streamer" checked:
+1. Fetches `https://www.youtube.com/oembed?format=json&url=VIDEO_URL`
+2. Extracts `author_name` (channel name) and `author_url` (channel URL)
+3. Parses channel handle from `author_url`
+4. Saves complete streamer metadata
 
-- ✅ **No servers** - everything runs in your browser
-- ✅ **No tracking** - we don't know what you watch
-- ✅ **No accounts** - no email, no login
-- ✅ **No ads** - completely clean
-- ✅ **Open source** - you can read the code
+**No API key required** - YouTube's oEmbed is public.
 
-**Your data never leaves your computer!**
+### SortableJS Integration
 
----
+- **Library**: SortableJS v1.15.3 (CDN)
+- **Handle**: `.drag-handle` (the `⋮⋮` element)
+- **Draggable**: `.stream-cell:not(.empty-cell)`
+- **Events**: Reorders `gridStreams` array on drag end, updates localStorage
 
-## 📂 Files Included
+## Architecture
 
+- **Zero dependencies** (except SortableJS via CDN)
+- **No build step** - pure HTML/CSS/JS
+- **No backend** - localStorage for persistence
+- **Cross-window sync** - `storage` events for Control Panel ↔ Viewer communication
+
+## Files
+
+- `index.html` - Main viewer interface
+- `control-panel.html` - Multi-monitor control panel
+- `app.js` - Core application logic
+- `logo.svg` - AntifaTimes branding
+- `start-server.sh` - Linux/Mac server script
+- `start-server.bat` - Windows server script
+
+## Advanced Tips
+
+### Exporting/Importing Saved Streamers
+
+**Export**:
+```javascript
+// In browser console:
+console.log(localStorage.getItem('multistream_streamers'));
 ```
-standalone/
-├── index.html    # The main app (open this!)
-├── app.js        # JavaScript logic
-└── README.md     # This file
+Copy the JSON output.
+
+**Import**:
+```javascript
+// Paste your JSON data:
+localStorage.setItem('multistream_streamers', '[...]');
+location.reload();
 ```
 
-**Total size: < 50KB**
+### Clearing All Data
 
----
+```javascript
+localStorage.clear();
+location.reload();
+```
 
-## 🔄 Updates
+### Custom Layouts Beyond 4×4
 
-To get updates:
-1. Download the new version
-2. Replace the old files
-3. Refresh your browser
-4. Your saved streams will still be there!
+Modify `app.js` → `loadState()` to support larger grids, but performance may degrade with too many simultaneous streams.
 
----
+## Development
 
-## 🔧 Troubleshooting
+### Local Development
 
-### YouTube Error 153: "Video player configuration error"
+No build process needed - just edit the HTML/CSS/JS files directly.
 
-**Cause:** Opening HTML file directly (`file://` protocol) doesn't send proper HTTP headers.
+### Testing
 
-**Fix:** Use the local server scripts:
-- Mac/Linux: Run `./start-server.sh`
-- Windows: Run `start-server.bat`
-- Then open: `http://localhost:8000/index.html`
+1. Start server: `./start-server.sh`
+2. Open `http://localhost:8000`
+3. Test multi-monitor: Open control panel, move to second window
+4. Test drag & drop: Add 4+ streams, drag to reorder
+5. Test streamers: Add YouTube video, click save streamer button
 
-### "Video unavailable" or "Embedding disabled"
+## License
 
-**Cause:** The video uploader has disabled embedding.
+MIT - See main repository LICENSE file
 
-**Fix:** This cannot be bypassed. Try a different video or ask the uploader to enable embedding.
+## Support
 
-### Some streams work, others don't
+- Issues: https://github.com/chalkyjason/UniteRev/issues
+- Pull Requests: Welcome!
 
-This is normal! Each video owner decides whether to allow embedding. News channels and official live streams usually work great.
+## Credits
 
-**📖 For detailed troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
-
----
-
-## ❓ FAQ
-
-**Q: Do I need internet?**
-A: Yes, to load the streams. But the app itself works offline once loaded.
-
-**Q: How many streams can I watch?**
-A: Up to 16 (4×4 grid). Your computer/internet may limit this.
-
-**Q: Can I save different layouts?**
-A: Open multiple copies of `index.html` - each saves independently.
-
-**Q: Does this work with OBS?**
-A: Yes! Add as a Browser Source in OBS.
-
-**Q: Is this really free?**
-A: Yes! No hidden costs, no subscriptions, no catches.
-
-**Q: Can I modify the code?**
-A: Absolutely! It's just HTML and JavaScript. Customize away!
-
----
-
-## 🌟 Feedback
-
-Found a bug? Have an idea? Want to share how you use it?
-
-Open an issue on GitHub or send a pull request!
-
----
-
-## 📜 License
-
-**MIT License** - Free to use, modify, and share!
-
----
-
-## 🎉 That's It!
-
-**You're ready to go!**
-
-1. Open `index.html`
-2. Click "+ Add Stream"
-3. Paste a URL
-4. Watch!
-
-**Happy streaming! 📺🔴**
+- **SortableJS**: https://github.com/SortableJS/Sortable
+- **YouTube oEmbed**: https://developers.google.com/youtube/v3/docs/oembed

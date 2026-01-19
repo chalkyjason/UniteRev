@@ -163,9 +163,51 @@
             font-size: 12px;
         }
 
-        .saved-streams-list {
+        .saved-streamers-list {
             max-height: 400px;
             overflow-y: auto;
+        }
+
+        .streamer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .streamer-item:hover {
+            border-color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .streamer-info {
+            flex: 1;
+            min-width: 0;
+            margin-right: 12px;
+        }
+
+        .streamer-name {
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .streamer-meta {
+            font-size: 12px;
+            color: #64748B;
+            text-transform: capitalize;
+        }
+
+        .streamer-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .stream-item {
@@ -195,12 +237,6 @@
             font-weight: 600;
             color: #1E293B;
             margin-bottom: 4px;
-        }
-
-        .stream-url {
-            font-size: 12px;
-            color: #64748B;
-            word-break: break-all;
         }
 
         .stream-actions {
@@ -341,14 +377,17 @@
                 <label class="form-label">Stream URL</label>
                 <input type="url" class="form-input" id="streamUrl" placeholder="https://www.youtube.com/watch?v=...">
                 <div class="form-help">
-                    Supports: YouTube, Twitch, Facebook Live, Rumble
+                    Supports: YouTube, Twitch, X (Twitter), TikTok, Facebook Live, Rumble
                 </div>
             </div>
 
             <div class="form-group">
                 <div class="checkbox-group">
-                    <input type="checkbox" id="saveStream" checked>
-                    <label for="saveStream">Save to my stream list for later</label>
+                    <input type="checkbox" id="saveStreamer" checked>
+                    <label for="saveStreamer">Save streamer to my list for later</label>
+                </div>
+                <div class="form-help">
+                    Saves the streamer/channel info for quick access
                 </div>
             </div>
 
@@ -364,10 +403,10 @@
             <div class="grid-selector" id="layoutSelector"></div>
         </div>
 
-        <!-- Saved Streams -->
+        <!-- Saved Streamers -->
         <div class="card">
-            <h2 class="card-title">💾 Saved Streams</h2>
-            <div class="saved-streams-list" id="savedStreamsList"></div>
+            <h2 class="card-title">💾 Saved Streamers</h2>
+            <div class="saved-streamers-list" id="savedStreamersList"></div>
         </div>
 
         <!-- Audio Control -->
@@ -398,13 +437,13 @@
             // State (synced with main viewer via localStorage)
             gridLayout: '2x2',
             gridStreams: [],
-            savedStreams: [],
+            savedStreamers: [],
             activeAudioIndex: null,
 
             init() {
                 this.loadState();
                 this.renderLayouts();
-                this.renderSavedStreams();
+                this.renderSavedStreamers();
                 this.renderAudioControl();
                 this.setupEventListeners();
 
@@ -413,7 +452,7 @@
                     if (e.key && e.key.startsWith('multistream_')) {
                         this.loadState();
                         this.renderLayouts();
-                        this.renderSavedStreams();
+                        this.renderSavedStreamers();
                         this.renderAudioControl();
                     }
                 });
@@ -425,14 +464,213 @@
             loadState() {
                 this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
                 this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
-                this.savedStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
                 this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
+
+                // Load streamers (new format) or migrate from old saved streams
+                const savedStreamers = localStorage.getItem('multistream_streamers');
+                if (savedStreamers) {
+                    this.savedStreamers = JSON.parse(savedStreamers);
+                } else {
+                    // Migration: convert old saved streams to streamers
+                    const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
+                    this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
+                    if (this.savedStreamers.length > 0) {
+                        localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+                    }
+                }
+            },
+
+            convertStreamToStreamer(stream) {
+                const platformInfo = this.extractPlatformInfo(stream.url);
+                return {
+                    id: platformInfo.id,
+                    platform: platformInfo.platform,
+                    handle: platformInfo.handle,
+                    displayName: stream.name,
+                    profileUrl: stream.url,
+                    createdAt: Date.now()
+                };
+            },
+
+            extractPlatformInfo(url) {
+                // Twitch
+                if (url.includes('twitch.tv')) {
+                    const handle = url.split('twitch.tv/')[1]?.split('/')[0] || 'unknown';
+                    return { platform: 'twitch', handle: handle, id: `twitch:${handle}` };
+                }
+                // YouTube @handle
+                if (url.includes('youtube.com/@') || url.includes('youtu.be/@')) {
+                    const handleMatch = url.match(/\/@([^\/\?]+)/);
+                    if (handleMatch) {
+                        const handle = handleMatch[1];
+                        return { platform: 'youtube', handle: '@' + handle, id: `youtube:@${handle}` };
+                    }
+                }
+                // YouTube channel ID
+                if (url.includes('youtube.com/channel/')) {
+                    const channelMatch = url.match(/\/channel\/([^\/\?]+)/);
+                    if (channelMatch) {
+                        const channelId = channelMatch[1];
+                        return { platform: 'youtube', handle: channelId, id: `youtube:${channelId}` };
+                    }
+                }
+                // X (Twitter)
+                if (url.includes('x.com') || url.includes('twitter.com')) {
+                    const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/]+)/);
+                    if (usernameMatch) {
+                        const handle = usernameMatch[1];
+                        return { platform: 'x', handle: '@' + handle, id: `x:@${handle}` };
+                    }
+                }
+                // TikTok
+                if (url.includes('tiktok.com')) {
+                    const usernameMatch = url.match(/@([^\/\?]+)/);
+                    if (usernameMatch) {
+                        const handle = usernameMatch[1];
+                        return { platform: 'tiktok', handle: '@' + handle, id: `tiktok:@${handle}` };
+                    }
+                }
+                // Default
+                return { platform: 'unknown', handle: 'unknown', id: `unknown:${Date.now()}` };
+            },
+
+            async resolveYouTubeStreamer(videoUrl) {
+                try {
+                    const endpoint = `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(videoUrl)}`;
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error('YouTube oEmbed failed');
+                    const data = await response.json();
+
+                    let handle = 'unknown';
+                    if (data.author_url) {
+                        const handleMatch = data.author_url.match(/\/@([^\/\?]+)/);
+                        const channelMatch = data.author_url.match(/\/channel\/([^\/\?]+)/);
+                        if (handleMatch) handle = '@' + handleMatch[1];
+                        else if (channelMatch) handle = channelMatch[1];
+                    }
+
+                    return {
+                        id: `youtube:${handle}`,
+                        platform: 'youtube',
+                        handle: handle,
+                        displayName: data.author_name || 'Unknown Channel',
+                        profileUrl: data.author_url || videoUrl,
+                        createdAt: Date.now()
+                    };
+                } catch (error) {
+                    console.error('YouTube oEmbed failed:', error);
+                    return null;
+                }
+            },
+
+            async resolveTikTokStreamer(videoUrl) {
+                try {
+                    const endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error('TikTok oEmbed failed');
+                    const data = await response.json();
+
+                    let handle = 'unknown';
+                    if (data.author_url) {
+                        const handleMatch = data.author_url.match(/@([^\/\?]+)/);
+                        if (handleMatch) handle = '@' + handleMatch[1];
+                    }
+
+                    return {
+                        id: `tiktok:${handle}`,
+                        platform: 'tiktok',
+                        handle: handle,
+                        displayName: data.author_name || data.author_unique_id || 'Unknown TikToker',
+                        profileUrl: data.author_url || videoUrl,
+                        createdAt: Date.now()
+                    };
+                } catch (error) {
+                    console.error('TikTok oEmbed failed:', error);
+                    return null;
+                }
+            },
+
+            async saveStreamerFromUrl(url, customName = null) {
+                let streamer = null;
+
+                // Twitch
+                if (url.includes('twitch.tv')) {
+                    const handle = url.split('twitch.tv/')[1]?.split('/')[0];
+                    streamer = {
+                        id: `twitch:${handle}`,
+                        platform: 'twitch',
+                        handle: handle,
+                        displayName: customName || handle,
+                        profileUrl: `https://twitch.tv/${handle}`,
+                        createdAt: Date.now()
+                    };
+                }
+                // YouTube video URLs - use oEmbed
+                else if (url.includes('youtube.com/watch') || url.includes('youtube.com/live') || url.includes('youtu.be/')) {
+                    streamer = await this.resolveYouTubeStreamer(url);
+                    if (streamer && customName) streamer.displayName = customName;
+                }
+                // YouTube channel/handle URLs
+                else if (url.includes('youtube.com/@') || url.includes('youtube.com/channel/')) {
+                    const platformInfo = this.extractPlatformInfo(url);
+                    streamer = {
+                        id: platformInfo.id,
+                        platform: 'youtube',
+                        handle: platformInfo.handle,
+                        displayName: customName || platformInfo.handle,
+                        profileUrl: url,
+                        createdAt: Date.now()
+                    };
+                }
+                // TikTok - use oEmbed
+                else if (url.includes('tiktok.com')) {
+                    streamer = await this.resolveTikTokStreamer(url);
+                    if (streamer && customName) streamer.displayName = customName;
+                    // Fallback if oEmbed fails
+                    if (!streamer) {
+                        const platformInfo = this.extractPlatformInfo(url);
+                        streamer = {
+                            id: platformInfo.id,
+                            platform: 'tiktok',
+                            handle: platformInfo.handle,
+                            displayName: customName || platformInfo.handle,
+                            profileUrl: url,
+                            createdAt: Date.now()
+                        };
+                    }
+                }
+                // Other platforms
+                else {
+                    const platformInfo = this.extractPlatformInfo(url);
+                    streamer = {
+                        id: platformInfo.id,
+                        platform: platformInfo.platform,
+                        handle: platformInfo.handle,
+                        displayName: customName || 'Unknown',
+                        profileUrl: url,
+                        createdAt: Date.now()
+                    };
+                }
+
+                if (streamer) {
+                    // Check if already exists
+                    const existingIndex = this.savedStreamers.findIndex(s => s.id === streamer.id);
+                    if (existingIndex >= 0) {
+                        this.savedStreamers[existingIndex] = streamer;
+                    } else {
+                        this.savedStreamers.push(streamer);
+                    }
+                    this.saveState();
+                    this.renderSavedStreamers();
+                    return streamer;
+                }
+                return null;
             },
 
             saveState() {
                 localStorage.setItem('multistream_layout', this.gridLayout);
                 localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
-                localStorage.setItem('multistream_saved', JSON.stringify(this.savedStreams));
+                localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
 
                 // Trigger storage event for viewer
                 window.dispatchEvent(new Event('storage'));
@@ -471,21 +709,21 @@
                 this.renderLayouts();
             },
 
-            addStream() {
+            async addStream() {
                 const name = document.getElementById('streamName').value.trim();
                 const url = document.getElementById('streamUrl').value.trim();
-                const shouldSave = document.getElementById('saveStream').checked;
+                const shouldSaveStreamer = document.getElementById('saveStreamer').checked;
 
                 if (!name || !url) {
                     alert('Please enter both stream name and URL');
                     return;
                 }
 
-                const stream = { name, url };
+                const stream = { name, url, size: '1x1' };
 
-                // Save to saved streams if checked
-                if (shouldSave && !this.savedStreams.some(s => s.url === url)) {
-                    this.savedStreams.push(stream);
+                // Save streamer if checked
+                if (shouldSaveStreamer) {
+                    await this.saveStreamerFromUrl(url, name);
                 }
 
                 // Find first empty slot
@@ -499,37 +737,51 @@
                     document.getElementById('streamUrl').value = '';
                     document.getElementById('streamName').focus();
 
-                    this.renderSavedStreams();
+                    this.renderSavedStreamers();
                 } else {
                     alert('Grid is full! Clear a slot or change to a larger layout.');
                 }
             },
 
-            renderSavedStreams() {
-                const container = document.getElementById('savedStreamsList');
+            renderSavedStreamers() {
+                const container = document.getElementById('savedStreamersList');
 
-                if (this.savedStreams.length === 0) {
+                if (this.savedStreamers.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">💾</div>
-                            <div>No saved streams yet</div>
-                            <div style="font-size: 12px; margin-top: 8px;">Save streams for quick access later</div>
+                            <div>No saved streamers yet</div>
+                            <div style="font-size: 12px; margin-top: 8px;">Save streamers for quick access later</div>
                         </div>
                     `;
                     return;
                 }
 
-                container.innerHTML = this.savedStreams.map((stream, index) => `
-                    <div class="stream-item">
-                        <div class="stream-info">
-                            <div class="stream-name">${this.escapeHtml(stream.name)}</div>
-                            <div class="stream-url">${this.escapeHtml(stream.url)}</div>
+                const platformEmoji = {
+                    'twitch': '💜',
+                    'youtube': '▶️',
+                    'facebook': '👍',
+                    'rumble': '🎥',
+                    'x': '𝕏',
+                    'tiktok': '🎵',
+                    'unknown': '📺'
+                };
+
+                container.innerHTML = this.savedStreamers.map((streamer, index) => `
+                    <div class="streamer-item">
+                        <div class="streamer-info">
+                            <div class="streamer-name">
+                                ${platformEmoji[streamer.platform] || '📺'} ${this.escapeHtml(streamer.displayName)}
+                            </div>
+                            <div class="streamer-meta">
+                                ${this.escapeHtml(streamer.platform)} · ${this.escapeHtml(streamer.handle)}
+                            </div>
                         </div>
-                        <div class="stream-actions">
-                            <button class="btn btn-secondary btn-small" onclick="controlPanel.useStream(${index})">
+                        <div class="streamer-actions">
+                            <button class="btn btn-secondary btn-small" onclick="controlPanel.useStreamer(${index})">
                                 ▶️ Use
                             </button>
-                            <button class="btn btn-danger btn-small" onclick="controlPanel.deleteStream(${index})">
+                            <button class="btn btn-danger btn-small" onclick="controlPanel.deleteStreamer(${index})">
                                 ✕
                             </button>
                         </div>
@@ -572,7 +824,7 @@
             },
 
             setAudio(index) {
-                // Toggle audio: if clicking active stream, mute all. Otherwise, activate clicked stream
+                // Toggle audio
                 if (this.activeAudioIndex === index) {
                     this.activeAudioIndex = null;
                 } else {
@@ -586,23 +838,28 @@
                 window.dispatchEvent(new Event('storage'));
             },
 
-            useStream(index) {
-                const stream = this.savedStreams[index];
-                const emptyIndex = this.gridStreams.findIndex(s => s === null);
+            useStreamer(index) {
+                const streamer = this.savedStreamers[index];
+                const stream = {
+                    name: streamer.displayName,
+                    url: streamer.profileUrl,
+                    size: '1x1'
+                };
 
+                const emptyIndex = this.gridStreams.findIndex(s => s === null);
                 if (emptyIndex >= 0) {
-                    this.gridStreams[emptyIndex] = { ...stream };
+                    this.gridStreams[emptyIndex] = stream;
                     this.saveState();
                 } else {
                     alert('Grid is full! Clear a slot or change to a larger layout.');
                 }
             },
 
-            deleteStream(index) {
-                if (confirm(`Delete "${this.savedStreams[index].name}"?`)) {
-                    this.savedStreams.splice(index, 1);
+            deleteStreamer(index) {
+                if (confirm(`Delete "${this.savedStreamers[index].displayName}"?`)) {
+                    this.savedStreamers.splice(index, 1);
                     this.saveState();
-                    this.renderSavedStreams();
+                    this.renderSavedStreamers();
                 }
             },
 
