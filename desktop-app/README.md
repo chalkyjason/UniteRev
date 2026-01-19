@@ -8,6 +8,44 @@ Desktop application version with auto-update functionality.
 - **Auto-Updates**: Automatically checks for updates from GitHub releases
 - **Offline Capable**: Works without internet (except for streaming content)
 - **Native Desktop Experience**: No browser required
+- **Full Browser Integration**: Each stream slot is a real browser (webview) that can:
+  - Access ANY URL without embedding restrictions
+  - Navigate to streamer profiles to check if they're live
+  - Interact with pages (login, chat, etc.)
+  - No more YouTube Error 153 or platform embedding blocks
+- **Navigation Controls**: Each slot has back, forward, refresh, and address bar
+- **Direct URL Access**: Visit Twitch channels, YouTube pages, X profiles, TikTok lives, etc.
+
+## Using the Desktop App
+
+### Browser-Based Stream Viewing
+
+Each stream slot is a **full browser** (Electron webview), not just an embedded player:
+
+**Navigation Controls** (visible at top of each stream):
+- **◄ Back**: Navigate to previous page
+- **► Forward**: Navigate to next page
+- **↻ Refresh**: Reload current page
+- **Address Bar**: Shows current URL, type new URL and press Enter to navigate
+- **Go Button**: Navigate to URL in address bar
+
+**What You Can Do**:
+1. **Visit Streamer Profiles**: Navigate to twitch.tv/username or youtube.com/@channel to see if they're live
+2. **Browse Multiple Pages**: Each slot is independent - one can be on YouTube, another on Twitch, etc.
+3. **Interact with Content**: Login to platforms, use chat, click links within pages
+4. **No Embedding Restrictions**: Works with ALL platforms (YouTube, TikTok, X, Facebook, Rumble, etc.)
+
+**Example Workflows**:
+- Add `https://twitch.tv/hasanabi` to a slot → Navigate through their channel → Check if live
+- Add `https://youtube.com/@channel` → Browse their videos → Click into a live stream
+- Add `https://x.com/username` → See their tweets → Click into a Twitter Space
+- Add `https://tiktok.com/@user/live` → Watch TikTok live without embedding issues
+
+**Tips**:
+- Click the stream to enable audio (red border = active audio)
+- Use size buttons (1×1, 2×1, etc.) to resize streams
+- Drag the `⋮⋮` handle to reorder streams
+- Save streamers (💾 button) to quickly access them later
 
 ## Development Setup
 
