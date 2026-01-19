@@ -1,502 +1,332 @@
-# Multi-Stream Manager - Premium Version 💎
+# AntifaTimes Stream Manager
+
+Multi-platform live stream viewer with multi-monitor support, drag-and-drop reordering, and streamer management.
+
+## Features
+
+### Core Features
+- **Multi-Stream Grid**: Watch up to 16 streams simultaneously in customizable grid layouts (1×1 to 4×4)
+- **Drag-and-Drop Reordering**: Click and drag the `⋮⋮` handle to reorder streams
+- **Custom Stream Sizing**: Resize individual streams from 1×1 to 4×4 grid cells
+- **Multi-Monitor Support**: Control panel opens in a separate window for dual-monitor setups
+- **Streamer Management**: Save and organize streamers/channels, not just individual streams
+- **Platform Detection**: Automatically extracts channel info from Twitch, YouTube, and more
+- **Audio Control**: Switch audio between streams without stopping playback
+- **Zero Backend**: Everything runs client-side using browser localStorage
+
+### New in This Version
+✨ **Drag & Drop**: Reorder streams by dragging the `⋮⋮` handle
+💾 **Save Streamers**: Save streamer/channel info instead of just stream URLs
+🔍 **Smart Detection**: YouTube oEmbed integration auto-detects channel names
+🎯 **Platform Icons**: Visual platform indicators (💜 Twitch, ▶️ YouTube, etc.)
+📌 **Save from Grid**: Click the 💾 button on any active stream to save that streamer
+
+## Quick Start
+
+1. **Run the server** (required for proper iframe embedding):
+   ```bash
+   # Linux/Mac
+   ./start-server.sh
+
+   # Windows
+   start-server.bat
+   ```
+
+2. **Open your browser**:
+   ```
+   http://localhost:8000
+   ```
+   (If port 8000 is in use, the script will auto-detect the next available port)
+
+3. **Add streams**:
+   - Click any empty slot or the "Add Stream" button
+   - Enter stream name and URL (YouTube, Twitch, Facebook, Rumble)
+   - Optionally check "Save streamer to my list" to save the streamer/channel
+   - Click "Add to Grid"
+
+4. **Open Control Panel** (for multi-monitor setup):
+   - Click "🎮 Open Control Panel" button
+   - Move control panel to your second monitor
+   - Add/remove streams and control audio from the panel
 
-**This is the PREMIUM version with license key validation and feature gating.**
+## Supported Platforms
 
----
+| Platform | URL Format | Example |
+|----------|-----------|---------|
+| **YouTube** | `youtube.com/watch?v=ID`<br>`youtube.com/live/ID`<br>`youtube.com/@channel` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
+| **Twitch** | `twitch.tv/channel` | `https://twitch.tv/hasanabi` |
+| **Facebook Live** | `facebook.com/username/videos/ID` | `https://www.facebook.com/user/videos/123456` |
+| **Rumble** | `rumble.com/video-id` | `https://rumble.com/v12345-video-title.html` |
 
-## 🆓 Free vs Premium
+## How to Use
 
-### FREE Features (No License):
-- ✅ Up to **4 streams** (2×2 grid max)
-- ✅ Save up to **10 streams**
-- ✅ Basic layouts: 1×1, 1×2, 2×1, 2×2
-- ✅ Audio control with red border
-- ✅ Manual stream adding
+### Adding Streams
 
-### 💎 PREMIUM Features (With License):
-- ✅ Up to **16 streams** (4×4 grid)
-- ✅ **Unlimited saved streams**
-- ✅ **All grid layouts**: 1×1, 1×2, 2×1, 2×2, 2×3, 3×2, 3×3, 4×2, 2×4, 4×4
-- ✅ Stream recording (coming soon)
-- ✅ Hotkeys & shortcuts (coming soon)
-- ✅ Custom themes (coming soon)
-- ✅ Quality selector (coming soon)
+1. **Quick Add**: Click an empty grid slot → Enter name and URL → Add
+2. **From Control Panel**: Use the "Add Stream" form in the control panel
+3. **From Saved Streamers**: Click "Use" on any saved streamer
 
----
+### Managing Streamers
 
-## 🔐 License System
+**What's a "Streamer" vs "Stream"?**
+- **Stream**: A single video/live URL (e.g., specific YouTube video)
+- **Streamer**: The channel/account itself (e.g., YouTube channel, Twitch user)
 
-### How It Works:
+**Saving Streamers**:
+- Check "Save streamer to my list" when adding a stream
+- Or click the 💾 button on any active stream tile
+- YouTube videos automatically resolve to the channel name using oEmbed
 
-1. **User opens app** → Sees FREE badge in header
-2. **Tries premium feature** (e.g., 4×4 grid) → Upgrade modal appears
-3. **Clicks "Buy Premium"** → Goes to Gumroad
-4. **Purchases** → Receives license key via email
-5. **Clicks "Activate License"** → Enters key
-6. **Premium unlocked!** → All features available
+**Using Saved Streamers**:
+- Open the "Add Stream" modal
+- Scroll to "💾 My Saved Streamers"
+- Click "Use" to add the streamer's profile/channel URL to the grid
 
-### License Key Format:
+**Platform Info**:
+- Saved streamers show platform emoji and handle
+- Example: `💜 hasanabi` (twitch · hasanabi)
 
-```
-MULTI-XXXXX-XXXXX-XXXXX
-```
+### Reordering Streams (Drag & Drop)
 
-Example: `MULTI-A3B9K-7F2DX-9M4WC`
+1. Hover over any stream tile
+2. Click and hold the `⋮⋮` drag handle (top-left corner)
+3. Drag the stream to a new position
+4. Release to drop
 
-- **Prefix**: `MULTI` (Multi-Stream Manager)
-- **3 segments**: Random alphanumeric (no confusing chars)
-- **Validation**: Simple checksum (expandable to server validation)
+**Tips**:
+- Only the drag handle (`⋮⋮`) is draggable - clicking elsewhere won't drag
+- Empty slots cannot be dragged
+- Reordering preserves custom sizes and audio selection
 
----
+### Resizing Streams
 
-## 🛠️ For Developers
+Each stream has size buttons in the top-right corner:
+- **1×1**: Standard single cell
+- **2×1, 1×2**: Two cells wide or tall
+- **2×2**: Four-cell square
+- **3×1, 1×3, 3×2, 2×3**: Larger configurations
+- **3×3, 4×4**: Massive tiles
 
-### Test License Keys
+**Tip**: Use large sizes for your main stream and smaller ones for context streams.
 
-These keys are hardcoded for testing:
+### Audio Control
 
-```javascript
-MULTI-PREM1-UM12-3456  // PREMIUM tier
-MULTI-PRO12-3456-7890  // PRO tier
-```
-
-### Adding Real License Validation
-
-**Option 1: Gumroad License API**
-
-```javascript
-async validateLicense(key) {
-    const response = await fetch('https://api.gumroad.com/v2/licenses/verify', {
-        method: 'POST',
-        body: JSON.stringify({
-            product_id: 'YOUR_PRODUCT_ID',
-            license_key: key
-        })
-    });
-
-    const data = await response.json();
-    return data.success ? 'PREMIUM' : false;
-}
-```
-
-**Option 2: Your Own Server**
-
-```javascript
-async validateLicense(key) {
-    const response = await fetch('https://yoursite.com/api/validate', {
-        method: 'POST',
-        body: JSON.stringify({ key })
-    });
-
-    const data = await response.json();
-    return data.valid ? data.tier : false;
-}
-```
-
-**Option 3: Encrypted Local Validation** (Current)
+**From Main Viewer**:
+- Click any stream tile to toggle its audio
+- Only one stream can have audio at a time
+- Active audio stream has a red pulsing border
+- Current audio source shown in bottom-left corner
 
-```javascript
-validateLicense(key) {
-    // Simple format check
-    if (!key.startsWith('MULTI-')) return false;
-
-    // In production: Use crypto to validate signature
-    // For now: Check against known keys
-    const validKeys = {
-        'MULTI-PREM1-UM12-3456': 'PREMIUM',
-        'MULTI-PRO12-3456-7890': 'PRO'
-    };
+**From Control Panel**:
+- Scroll to "🔊 Audio Control" section
+- Click any active stream to switch audio
+- Active stream highlighted in green
 
-    return validKeys[key] || false;
-}
-```
+**Important**: Audio switching does **not** reload the video - playback continues uninterrupted.
 
-### Feature Gating
-
-**Example: Limit Stream Count**
+### Grid Layouts
 
-```javascript
-canAddStream() {
-    const limit = this.limits[this.licenseType].maxStreams;
-    const current = this.gridStreams.filter(s => s !== null).length;
-
-    if (current >= limit) {
-        this.showUpgradeModal('stream_limit');
-        return false;
-    }
-    return true;
-}
-```
+Available layouts (from Control Panel):
+- 1×1, 1×2, 2×1 (1-2 streams)
+- 2×2 (4 streams)
+- 2×3, 3×2 (6 streams)
+- 3×3 (9 streams)
+- 4×2, 2×4 (8 streams)
+- 4×4 (16 streams)
 
-**Example: Lock Premium Layouts**
+Changing layouts preserves as many streams as possible. Streams beyond the new grid size are removed.
 
-```javascript
-canUseLayout(layout) {
-    const allowed = this.limits[this.licenseType].allowedLayouts;
+### Multi-Monitor Setup
 
-    if (!allowed.includes(layout)) {
-        this.showUpgradeModal('layout_limit');
-        return false;
-    }
-    return true;
-}
-```
+1. Click "🎮 Open Control Panel"
+2. Drag the control panel window to your second monitor
+3. Keep the main viewer fullscreen on your primary monitor
+4. Manage streams, audio, and layout from the control panel
 
-### Adding New Premium Features
+**Synchronization**: Changes in the control panel instantly update the main viewer via localStorage events.
 
-1. **Add to limits object:**
+## Troubleshooting
 
-```javascript
-limits: {
-    FREE: {
-        features: {
-            recording: false,
-            newFeature: false  // ← Add here
-        }
-    },
-    PREMIUM: {
-        features: {
-            recording: true,
-            newFeature: true   // ← Add here
-        }
-    }
-}
-```
+### YouTube Error 153 / "This video can't be played"
 
-2. **Gate the feature:**
+YouTube requires proper HTTP referrer headers. **Solution**:
+1. Run the local server (`start-server.sh` or `start-server.bat`)
+2. Access via `http://localhost:PORT`, **not** `file://`
+3. Some videos have embedding disabled by the uploader - nothing we can do
 
-```javascript
-startRecording() {
-    if (!this.canUseFeature('newFeature')) {
-        this.showUpgradeModal('feature_limit');
-        return;
-    }
+### Twitch "This embed is misconfigured"
 
-    // Your feature code...
-}
-```
+Fixed automatically. The app handles all localhost variations (IPv6, IPv4) correctly.
 
-3. **Add to upgrade modal:**
+### Port Already in Use
 
-```html
-<li>Your new premium feature</li>
-```
+The start scripts auto-detect available ports. If port 8000 is in use, they'll try 8001, 8002, etc.
 
----
+### Stream Not Loading
 
-## 💰 Monetization Setup
-
-### 1. Set Up Gumroad
-
-1. Go to https://gumroad.com
-2. Create product
-3. Set price: $9.99
-4. Enable **"Generate a unique license key"**
-5. Upload this folder as ZIP
-
-### 2. Update Buy Button
-
-In `index.html`, line ~XXX, update:
-
-```html
-<button class="btn-buy" onclick="window.open('https://gumroad.com/l/YOUR-URL', '_blank')">
-```
-
-Replace `YOUR-URL` with your Gumroad product URL
-
-### 3. Integrate License Validation
-
-Choose your validation method:
-
-**Quick Start (Gumroad API):**
-- Get Gumroad API key
-- Update `validateLicense()` function
-- Test with real purchase
-
-**Advanced (Your Server):**
-- Build validation endpoint
-- Store licenses in database
-- Track activations per license
-
-### 4. Launch!
-
-See `QUICK_START_SELLING.md` for complete launch guide
-
----
-
-## 🎨 Customization
-
-### Change Pricing
-
-In `index.html` upgrade modal:
-
-```html
-<div class="price">$9.99</div>  <!-- Change this -->
-```
-
-### Add Monthly Subscription
-
-```html
-<div class="pricing-options">
-    <button onclick="buyOneTime()">$9.99 One-time</button>
-    <button onclick="buyMonthly()">$2.99/month</button>
-</div>
-```
-
-### Change Feature Limits
-
-In `app.js`:
-
-```javascript
-limits: {
-    FREE: {
-        maxStreams: 4,      // ← Change this
-        maxSaved: 10,       // ← Change this
-        // ...
-    }
-}
-```
-
-### Customize Upgrade Modal
-
-In `index.html`, search for `upgrade-modal-content` and customize:
-- Icon
-- Title
-- Message
-- Features list
-- Pricing
-- Button text
-
----
-
-## 📊 Analytics
-
-### Track Upgrade Modal Views
-
-```javascript
-showUpgradeModal(reason) {
-    // Track with Google Analytics
-    gtag('event', 'upgrade_modal_shown', {
-        'reason': reason,
-        'license_type': this.licenseType
-    });
-
-    // Show modal...
-}
-```
-
-### Track Conversions
-
-```javascript
-saveLicense(type, key) {
-    // Track successful activation
-    gtag('event', 'license_activated', {
-        'license_type': type
-    });
-
-    // Save license...
-}
-```
-
-### Track Feature Usage
-
-```javascript
-setLayout(layout) {
-    // Track layout changes
-    gtag('event', 'layout_changed', {
-        'layout': layout,
-        'license_type': this.licenseType
-    });
-
-    // Change layout...
-}
-```
-
----
-
-## 🧪 Testing
-
-### Test Free Tier Limits
-
-1. Open app (no license)
-2. Add 4 streams → Should work
-3. Try to add 5th → Should show upgrade modal
-4. Try 3×3 layout → Should show upgrade modal
-5. Save 10 streams → Should work
-6. Try to save 11th → Should show upgrade modal
-
-### Test Premium Activation
-
-1. Click "Activate License"
-2. Enter: `MULTI-PREM1-UM12-3456`
-3. Should show success message
-4. Badge should change to "✓ PREMIUM"
-5. Try 4×4 layout → Should work
-6. Try adding 16 streams → Should work
-7. Save unlimited streams → Should work
-
-### Test Persistence
-
-1. Activate premium
-2. Close browser
-3. Reopen app
-4. Should still show as PREMIUM
-5. Premium features should work
-
----
-
-## 🚀 Deployment
-
-### As Standalone App
-
-1. ZIP the `standalone-premium` folder
-2. Upload to Gumroad
-3. Users download and open `index.html`
-4. Works immediately in browser
-
-### As Electron App
-
-1. Wrap in Electron
-2. Build installers (.exe, .dmg, .AppImage)
-3. Distribute via Gumroad or your site
-4. Auto-update support
-
-### As Web App
-
-1. Host on your domain
-2. Users visit URL
-3. License stored in localStorage
-4. Works across devices
-
----
-
-## 🔒 Security Considerations
-
-### Current Implementation:
-- ✅ Simple format validation
-- ✅ localStorage persistence
-- ✅ Basic test keys
-- ⚠️ Keys can be shared (no tracking)
-- ⚠️ No server validation
-
-### Recommended for Production:
-- ✅ Server-side validation
-- ✅ Track activations per key
-- ✅ Limit devices per license
-- ✅ Revocation capability
-- ✅ Encrypted key storage
-
-### Quick Security Upgrade:
-
-```javascript
-validateLicense(key) {
-    // Check format
-    if (!key.match(/^MULTI-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/)) {
-        return false;
-    }
-
-    // Validate with server
-    return await fetch('/api/validate', {
-        method: 'POST',
-        body: JSON.stringify({ key })
-    }).then(r => r.json());
-}
-```
-
----
-
-## 📝 Customer Instructions
-
-When a customer purchases, send them this:
-
-```
-Thanks for purchasing Multi-Stream Manager Premium! 🎉
-
-YOUR LICENSE KEY:
-[LICENSE-KEY-HERE]
-
-HOW TO ACTIVATE:
-
-1. Download the app (attached)
-2. Extract the ZIP file
-3. Open "index.html" in Chrome or Firefox
-4. Click the green "Upgrade" button in the header
-5. Click "Already have a license? Activate it here"
-6. Paste your license key
-7. Press Enter
-
-That's it! All premium features are now unlocked.
-
-PREMIUM FEATURES YOU NOW HAVE:
-✅ Up to 16 streams (4×4 grid)
-✅ All grid layouts
-✅ Unlimited saved streams
-✅ Lifetime updates
-
-Need help? Reply to this email anytime!
-
-Enjoy! 🚀
-```
-
----
-
-## 🐛 Troubleshooting
-
-### "License key invalid"
-- Check for typos (dashes matter!)
-- Copy the entire key including MULTI-
-- Try clearing browser cache
-
-### "Premium features still locked"
-- Refresh the page
-- Clear localStorage: `localStorage.clear()`
-- Re-enter license key
-
-### "License not persisting"
-- Check browser localStorage is enabled
+- Check if the URL is correct
+- Verify the stream is actually live
 - Try a different browser
-- Check browser privacy settings
+- Check browser console for errors
 
----
+### Saved Streamers Not Showing
 
-## 💡 Ideas for More Premium Features
+- Old "Saved Streams" auto-migrate to "Saved Streamers" on first load
+- If using multiple browsers/devices, streamers are stored per-browser (localStorage)
 
-### Easy to Add:
-- Dark/light theme toggle
-- Custom grid colors
-- Stream quality selector
-- Keyboard shortcuts
-- Fullscreen mode
-- Picture-in-picture
+### Audio Not Switching
 
-### Medium Difficulty:
-- Stream recording
-- Screenshot capture
-- Stream alerts/notifications
-- Cloud sync (save to server)
-- Export/import settings
+- Make sure you're clicking the stream tile, not just the overlay buttons
+- Or use the Control Panel's "Audio Control" section
+- Check browser console for errors
 
-### Advanced:
-- Multi-instance support
-- API access
-- Webhook integrations
-- Team features
-- White label option
-- Custom integrations
+### Drag & Drop Not Working
 
----
+- Make sure you're dragging from the `⋮⋮` handle (top-left of each stream)
+- Empty slots cannot be dragged
+- If SortableJS fails to load, check your internet connection
 
-## 📞 Support
+## Data Storage
 
-Questions about the premium system?
-- Email: support@yoursite.com
-- Discord: [Your Server]
-- Twitter: @yourhandle
+All data is stored in browser localStorage:
 
----
+| Key | Description |
+|-----|-------------|
+| `multistream_layout` | Current grid layout (e.g., "2x2") |
+| `multistream_grid` | Array of active streams with positions and sizes |
+| `multistream_streamers` | Array of saved streamer/channel objects |
+| `multistream_audio` | Index of active audio stream |
 
-**Ready to start selling? See `QUICK_START_SELLING.md` for the complete launch guide!**
+**Data Format - Saved Streamer**:
+```json
+{
+  "id": "twitch:hasanabi",
+  "platform": "twitch",
+  "handle": "hasanabi",
+  "displayName": "HasanAbi",
+  "profileUrl": "https://twitch.tv/hasanabi",
+  "createdAt": 1234567890123
+}
+```
 
-**License key generation, Gumroad setup, and marketing templates included.**
+**Migration**: Old `multistream_saved` (stream URLs) automatically converts to `multistream_streamers` (streamer objects).
 
-🚀 **Let's make some money!**
+## Keyboard Shortcuts
+
+- **Enter**: Submit stream form (when focused on input)
+- **Escape**: Close modal
+- **Ctrl/Cmd+R**: Reload viewer (from Control Panel's View menu)
+
+## Browser Compatibility
+
+- ✅ Chrome/Edge (recommended)
+- ✅ Firefox
+- ✅ Safari
+- ⚠️ Mobile browsers (limited due to iframe autoplay policies)
+
+## Technical Details
+
+### Platform Detection Logic
+
+**Twitch**:
+- Direct extraction from URL: `twitch.tv/CHANNEL`
+- Saves as `twitch:CHANNEL`
+
+**YouTube**:
+- Video URLs (`/watch?v=`, `/live/`): Uses oEmbed API to resolve channel
+- Channel URLs (`/@handle`, `/channel/ID`): Direct extraction
+- Saves as `youtube:@handle` or `youtube:CHANNEL_ID`
+
+**Others**:
+- Falls back to basic URL parsing
+- Saves as `unknown:timestamp`
+
+### YouTube oEmbed
+
+When you add a YouTube video URL with "Save streamer" checked:
+1. Fetches `https://www.youtube.com/oembed?format=json&url=VIDEO_URL`
+2. Extracts `author_name` (channel name) and `author_url` (channel URL)
+3. Parses channel handle from `author_url`
+4. Saves complete streamer metadata
+
+**No API key required** - YouTube's oEmbed is public.
+
+### SortableJS Integration
+
+- **Library**: SortableJS v1.15.3 (CDN)
+- **Handle**: `.drag-handle` (the `⋮⋮` element)
+- **Draggable**: `.stream-cell:not(.empty-cell)`
+- **Events**: Reorders `gridStreams` array on drag end, updates localStorage
+
+## Architecture
+
+- **Zero dependencies** (except SortableJS via CDN)
+- **No build step** - pure HTML/CSS/JS
+- **No backend** - localStorage for persistence
+- **Cross-window sync** - `storage` events for Control Panel ↔ Viewer communication
+
+## Files
+
+- `index.html` - Main viewer interface
+- `control-panel.html` - Multi-monitor control panel
+- `app.js` - Core application logic
+- `logo.svg` - AntifaTimes branding
+- `start-server.sh` - Linux/Mac server script
+- `start-server.bat` - Windows server script
+
+## Advanced Tips
+
+### Exporting/Importing Saved Streamers
+
+**Export**:
+```javascript
+// In browser console:
+console.log(localStorage.getItem('multistream_streamers'));
+```
+Copy the JSON output.
+
+**Import**:
+```javascript
+// Paste your JSON data:
+localStorage.setItem('multistream_streamers', '[...]');
+location.reload();
+```
+
+### Clearing All Data
+
+```javascript
+localStorage.clear();
+location.reload();
+```
+
+### Custom Layouts Beyond 4×4
+
+Modify `app.js` → `loadState()` to support larger grids, but performance may degrade with too many simultaneous streams.
+
+## Development
+
+### Local Development
+
+No build process needed - just edit the HTML/CSS/JS files directly.
+
+### Testing
+
+1. Start server: `./start-server.sh`
+2. Open `http://localhost:8000`
+3. Test multi-monitor: Open control panel, move to second window
+4. Test drag & drop: Add 4+ streams, drag to reorder
+5. Test streamers: Add YouTube video, click save streamer button
+
+## License
+
+MIT - See main repository LICENSE file
+
+## Support
+
+- Issues: https://github.com/chalkyjason/UniteRev/issues
+- Pull Requests: Welcome!
+
+## Credits
+
+- **SortableJS**: https://github.com/SortableJS/Sortable
+- **YouTube oEmbed**: https://developers.google.com/youtube/v3/docs/oembed

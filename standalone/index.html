@@ -260,6 +260,60 @@
             border-color: #3B82F6;
         }
 
+        /* Drag Handle */
+        .drag-handle {
+            padding: 8px;
+            margin-right: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: grab;
+            font-size: 16px;
+            color: #94A3B8;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .drag-handle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Save Streamer Button */
+        .btn-save-streamer {
+            padding: 6px 10px;
+            background: rgba(16, 185, 129, 0.8);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-save-streamer:hover {
+            background: #10B981;
+            transform: scale(1.1);
+        }
+
+        /* Sortable States */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #3B82F6;
+        }
+
+        .sortable-chosen {
+            cursor: grabbing !important;
+        }
+
+        .sortable-drag {
+            opacity: 1;
+            cursor: grabbing !important;
+        }
+
         .stream-footer {
             padding: 12px;
             background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
@@ -398,11 +452,11 @@
             border-color: #3B82F6;
         }
 
-        .saved-streams {
+        .saved-streamers {
             margin-top: 24px;
         }
 
-        .saved-stream-item {
+        .saved-streamer-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -412,18 +466,19 @@
             margin-bottom: 8px;
         }
 
-        .saved-stream-name {
+        .saved-streamer-name {
             font-weight: 600;
             margin-bottom: 4px;
+            font-size: 14px;
         }
 
-        .saved-stream-url {
+        .saved-streamer-info {
             font-size: 12px;
             color: #64748B;
-            word-break: break-all;
+            text-transform: capitalize;
         }
 
-        .saved-stream-actions {
+        .saved-streamer-actions {
             display: flex;
             gap: 8px;
         }
@@ -512,7 +567,7 @@
                 <span>No audio selected</span>
             </div>
             <div style="display: flex; gap: 16px; align-items: center;">
-                <span style="color: #64748B; font-size: 13px;">Click stream for audio</span>
+                <span style="color: #64748B; font-size: 13px;">Click stream for audio • Drag ⋮⋮ to reorder</span>
                 <span style="color: #475569; font-size: 12px;">💡 Use Control Panel for multi-monitor setup</span>
             </div>
         </div>
@@ -541,19 +596,24 @@
 
             <div class="form-group">
                 <label>
-                    <input type="checkbox" id="saveStream"> Save to my stream list
+                    <input type="checkbox" id="saveStreamer"> Save streamer to my list
                 </label>
+                <p style="font-size: 12px; color: #64748B; margin-top: 4px;">
+                    Saves the streamer/channel for quick access later
+                </p>
             </div>
 
             <button class="btn btn-primary" onclick="app.addStream()" style="width: 100%;">Add to Grid</button>
 
-            <div class="saved-streams">
-                <h3 style="margin-bottom: 12px;">My Saved Streams</h3>
-                <div id="savedStreamsList"></div>
+            <div class="saved-streamers">
+                <h3 style="margin-bottom: 12px;">💾 My Saved Streamers</h3>
+                <div id="savedStreamersList"></div>
             </div>
         </div>
     </div>
 
+    <!-- SortableJS for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
