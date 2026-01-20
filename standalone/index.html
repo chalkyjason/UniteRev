@@ -347,6 +347,110 @@
             50% { transform: scale(1.2); }
         }
 
+        /* Resize Handles */
+        .stream-cell.has-stream {
+            user-select: none;
+        }
+
+        .resize-handle {
+            position: absolute;
+            pointer-events: all;
+            z-index: 100;
+            background: rgba(59, 130, 246, 0.8);
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover {
+            background: rgba(59, 130, 246, 1);
+        }
+
+        /* Corner Handles */
+        .resize-handle-nw {
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            cursor: nw-resize;
+            border-radius: 8px 0 0 0;
+        }
+
+        .resize-handle-ne {
+            top: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            cursor: ne-resize;
+            border-radius: 0 8px 0 0;
+        }
+
+        .resize-handle-sw {
+            bottom: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            cursor: sw-resize;
+            border-radius: 0 0 0 8px;
+        }
+
+        .resize-handle-se {
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            cursor: se-resize;
+            border-radius: 0 0 8px 0;
+        }
+
+        /* Edge Handles */
+        .resize-handle-n {
+            top: 0;
+            left: 12px;
+            right: 12px;
+            height: 4px;
+            cursor: n-resize;
+        }
+
+        .resize-handle-s {
+            bottom: 0;
+            left: 12px;
+            right: 12px;
+            height: 4px;
+            cursor: s-resize;
+        }
+
+        .resize-handle-w {
+            left: 0;
+            top: 12px;
+            bottom: 12px;
+            width: 4px;
+            cursor: w-resize;
+        }
+
+        .resize-handle-e {
+            right: 0;
+            top: 12px;
+            bottom: 12px;
+            width: 4px;
+            cursor: e-resize;
+        }
+
+        /* Free resize mode - absolute positioning */
+        .stream-grid.free-resize-mode {
+            position: relative;
+            display: block;
+        }
+
+        .stream-cell.custom-size {
+            position: absolute !important;
+            transition: none !important;
+            transform: none !important;
+        }
+
+        .stream-cell.resizing {
+            opacity: 0.8;
+            z-index: 1000;
+        }
+
         /* Empty Cell */
         .empty-cell {
             display: flex;

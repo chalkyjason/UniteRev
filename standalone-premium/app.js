@@ -460,7 +460,26 @@ const app = {
                             </div>
                         </div>
                     </div>
+                    <!-- Resize Handles -->
+                    <div class="resize-handle resize-handle-nw" data-direction="nw" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-ne" data-direction="ne" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-sw" data-direction="sw" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-se" data-direction="se" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-n" data-direction="n" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-s" data-direction="s" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-w" data-direction="w" data-index="${i}"></div>
+                    <div class="resize-handle resize-handle-e" data-direction="e" data-index="${i}"></div>
                 `;
+
+                // Apply custom positioning if stream has custom dimensions
+                if (stream.customSize) {
+                    cell.classList.add('custom-size');
+                    cell.style.left = stream.customSize.x + 'px';
+                    cell.style.top = stream.customSize.y + 'px';
+                    cell.style.width = stream.customSize.width + 'px';
+                    cell.style.height = stream.customSize.height + 'px';
+                    grid.classList.add('free-resize-mode');
+                }
 
                 cell.onclick = () => this.toggleAudio(i);
             } else {
@@ -478,6 +497,103 @@ const app = {
 
         this.updateAudioStatus();
         this.initSortable(); // Reinitialize sortable after render
+        this.initResizeHandles(); // Initialize resize functionality
+    },
+
+    // Initialize resize handles
+    initResizeHandles() {
+        const handles = document.querySelectorAll('.resize-handle');
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+
+                const index = parseInt(handle.dataset.index);
+                const direction = handle.dataset.direction;
+                const cell = document.querySelector(`.stream-cell[data-index="${index}"]`);
+                const grid = document.getElementById('streamGrid');
+                const gridRect = grid.getBoundingClientRect();
+
+                if (!cell) return;
+
+                cell.classList.add('resizing');
+
+                // Get current dimensions
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = cell.offsetWidth;
+                const startHeight = cell.offsetHeight;
+                const startLeft = cell.offsetLeft;
+                const startTop = cell.offsetTop;
+
+                // Switch to custom positioning
+                const stream = this.gridStreams[index];
+                if (!stream.customSize) {
+                    stream.customSize = {
+                        x: cell.offsetLeft,
+                        y: cell.offsetTop,
+                        width: startWidth,
+                        height: startHeight
+                    };
+                }
+
+                cell.classList.add('custom-size');
+                grid.classList.add('free-resize-mode');
+
+                const onMouseMove = (e) => {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    let newLeft = startLeft;
+                    let newTop = startTop;
+
+                    // Calculate new dimensions based on resize direction
+                    if (direction.includes('e')) {
+                        newWidth = Math.max(200, startWidth + deltaX);
+                    }
+                    if (direction.includes('w')) {
+                        newWidth = Math.max(200, startWidth - deltaX);
+                        newLeft = startLeft + deltaX;
+                        if (newWidth === 200) newLeft = startLeft + startWidth - 200;
+                    }
+                    if (direction.includes('s')) {
+                        newHeight = Math.max(150, startHeight + deltaY);
+                    }
+                    if (direction.includes('n')) {
+                        newHeight = Math.max(150, startHeight - deltaY);
+                        newTop = startTop + deltaY;
+                        if (newHeight === 150) newTop = startTop + startHeight - 150;
+                    }
+
+                    // Apply new dimensions
+                    cell.style.width = newWidth + 'px';
+                    cell.style.height = newHeight + 'px';
+                    cell.style.left = newLeft + 'px';
+                    cell.style.top = newTop + 'px';
+
+                    // Update stream data
+                    stream.customSize = {
+                        x: newLeft,
+                        y: newTop,
+                        width: newWidth,
+                        height: newHeight
+                    };
+                };
+
+                const onMouseUp = () => {
+                    cell.classList.remove('resizing');
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    this.saveState();
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
     },
 
     // Save streamer from active stream
@@ -681,6 +797,16 @@ const app = {
     setStreamSize(index, size) {
         if (this.gridStreams[index]) {
             this.gridStreams[index].size = size;
+            // Clear custom size when preset is selected
+            delete this.gridStreams[index].customSize;
+
+            // Remove free-resize-mode if no streams have custom sizes
+            const hasCustomSizes = this.gridStreams.some(s => s && s.customSize);
+            if (!hasCustomSizes) {
+                const grid = document.getElementById('streamGrid');
+                grid.classList.remove('free-resize-mode');
+            }
+
             this.render();
             this.saveState();
         }
