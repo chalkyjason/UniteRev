@@ -196,6 +196,13 @@
             color: #1E293B;
             margin-bottom: 4px;
             font-size: 14px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .streamer-name:hover {
+            color: #667eea;
+            text-decoration: underline;
         }
 
         .streamer-meta {
@@ -770,7 +777,7 @@
                 container.innerHTML = this.savedStreamers.map((streamer, index) => `
                     <div class="streamer-item">
                         <div class="streamer-info">
-                            <div class="streamer-name">
+                            <div class="streamer-name" onclick="controlPanel.openInViewer(${index})" title="Click to open in main viewer">
                                 ${platformEmoji[streamer.platform] || '📺'} ${this.escapeHtml(streamer.displayName)}
                             </div>
                             <div class="streamer-meta">
@@ -778,7 +785,7 @@
                             </div>
                         </div>
                         <div class="streamer-actions">
-                            <button class="btn btn-secondary btn-small" onclick="controlPanel.useStreamer(${index})">
+                            <button class="btn btn-secondary btn-small" onclick="controlPanel.useStreamer(${index})" title="Add to grid">
                                 ▶️ Use
                             </button>
                             <button class="btn btn-danger btn-small" onclick="controlPanel.deleteStreamer(${index})">
@@ -852,6 +859,48 @@
                     this.saveState();
                 } else {
                     alert('Grid is full! Clear a slot or change to a larger layout.');
+                }
+            },
+
+            openInViewer(index) {
+                const streamer = this.savedStreamers[index];
+                const stream = {
+                    name: streamer.displayName,
+                    url: streamer.profileUrl,
+                    size: '1x1'
+                };
+
+                // Find first empty slot in the grid
+                const emptyIndex = this.gridStreams.findIndex(s => s === null);
+                if (emptyIndex >= 0) {
+                    this.gridStreams[emptyIndex] = stream;
+                    this.saveState();
+
+                    // Show success message
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: rgba(16, 185, 129, 0.95);
+                        color: white;
+                        padding: 16px 24px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 10000;
+                        font-size: 14px;
+                        font-weight: 600;
+                    `;
+                    notification.textContent = `✓ Opened ${streamer.displayName} in main viewer`;
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.style.transition = 'opacity 0.3s';
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 2000);
+                } else {
+                    alert('Grid is full! Clear a slot or change to a larger layout first.');
                 }
             },
 

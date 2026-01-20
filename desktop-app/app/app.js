@@ -420,16 +420,28 @@ const app = {
                 cell.style.gridColumn = `span ${spanCols}`;
                 cell.style.gridRow = `span ${spanRows}`;
 
-                const embedUrl = this.getEmbedUrl(stream.url);
-
                 cell.innerHTML = `
-                    <iframe
-                        class="stream-frame"
-                        src="${embedUrl}${i === this.activeAudioIndex ? '' : '&mute=1'}"
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen>
-                    </iframe>
+                    <div class="webview-container">
+                        <div class="webview-nav">
+                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'back')" title="Back">◄</button>
+                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'forward')" title="Forward">►</button>
+                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'reload')" title="Refresh">↻</button>
+                            <input type="text" class="webview-url" id="url-${i}" value="${this.escapeHtml(stream.url)}"
+                                   onkeypress="if(event.key==='Enter') app.webviewNavigate(${i}, 'goto', this.value)"
+                                   onclick="event.stopPropagation();" placeholder="Enter URL...">
+                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'goto', document.getElementById('url-${i}').value)" title="Go">Go</button>
+                        </div>
+                        <webview
+                            id="webview-${i}"
+                            class="stream-frame"
+                            src="${this.escapeHtml(stream.url)}"
+                            ${i === this.activeAudioIndex ? '' : 'muted'}
+                            allowpopups
+                            partition="persist:stream"
+                            webpreferences="contextIsolation=no"
+                            disablewebsecurity>
+                        </webview>
+                    </div>
                     <div class="stream-overlay">
                         <div class="stream-header">
                             <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
@@ -478,6 +490,7 @@ const app = {
 
         this.updateAudioStatus();
         this.initSortable(); // Reinitialize sortable after render
+        this.setupWebviewListeners(); // Setup webview event listeners
     },
 
     // Save streamer from active stream
@@ -588,7 +601,7 @@ const app = {
     },
 
     updateAudioIndicators() {
-        // Update audio indicators without reloading iframes
+        // Update audio indicators and webview mute states
         document.querySelectorAll('.stream-cell').forEach((cell, i) => {
             const isActive = i === this.activeAudioIndex;
             const audioIcon = cell.querySelector('.audio-icon');
@@ -605,17 +618,10 @@ const app = {
                 cell.classList.toggle('active-audio', isActive);
             }
 
-            // Update iframe mute parameter by reloading only if needed
-            const iframe = cell.querySelector('iframe');
-            if (iframe && this.gridStreams[i]) {
-                const stream = this.gridStreams[i];
-                const embedUrl = this.getEmbedUrl(stream.url);
-                const newSrc = `${embedUrl}${isActive ? '' : '&mute=1'}`;
-
-                // Only reload if mute state actually changed
-                if (iframe.src !== newSrc) {
-                    iframe.src = newSrc;
-                }
+            // Update webview mute state
+            const webview = document.getElementById(`webview-${i}`);
+            if (webview && this.gridStreams[i]) {
+                webview.setAudioMuted(!isActive);
             }
         });
     },
@@ -684,6 +690,94 @@ const app = {
             this.render();
             this.saveState();
         }
+    },
+
+    webviewNavigate(index, action, url) {
+        const webview = document.getElementById(`webview-${index}`);
+        const urlInput = document.getElementById(`url-${index}`);
+
+        if (!webview) return;
+
+        switch(action) {
+            case 'back':
+                if (webview.canGoBack()) {
+                    webview.goBack();
+                }
+                break;
+            case 'forward':
+                if (webview.canGoForward()) {
+                    webview.goForward();
+                }
+                break;
+            case 'reload':
+                webview.reload();
+                break;
+            case 'goto':
+                if (url) {
+                    // Ensure URL has protocol
+                    if (!url.match(/^https?:\/\//)) {
+                        url = 'https://' + url;
+                    }
+                    webview.src = url;
+                    if (this.gridStreams[index]) {
+                        this.gridStreams[index].url = url;
+                        this.saveState();
+                    }
+                }
+                break;
+        }
+    },
+
+    setupWebviewListeners() {
+        // Setup event listeners for all webviews
+        document.querySelectorAll('webview').forEach((webview, index) => {
+            // Grant permissions for clipboard, media, etc.
+            webview.addEventListener('permission-request', (e) => {
+                // Allow clipboard, media devices, fullscreen, etc.
+                if (e.permission === 'clipboard-read' ||
+                    e.permission === 'clipboard-write' ||
+                    e.permission === 'clipboard-sanitized-write' ||
+                    e.permission === 'media' ||
+                    e.permission === 'mediaKeySystem' ||
+                    e.permission === 'geolocation' ||
+                    e.permission === 'notifications' ||
+                    e.permission === 'fullscreen' ||
+                    e.permission === 'pointerLock') {
+                    e.request.allow();
+                }
+            });
+
+            // Update URL bar when navigation occurs
+            webview.addEventListener('did-navigate', (e) => {
+                const urlInput = document.getElementById(`url-${index}`);
+                if (urlInput) {
+                    urlInput.value = e.url;
+                }
+            });
+
+            webview.addEventListener('did-navigate-in-page', (e) => {
+                const urlInput = document.getElementById(`url-${index}`);
+                if (urlInput) {
+                    urlInput.value = e.url;
+                }
+            });
+
+            // Handle loading states
+            webview.addEventListener('did-start-loading', () => {
+                webview.classList.add('loading');
+            });
+
+            webview.addEventListener('did-stop-loading', () => {
+                webview.classList.remove('loading');
+            });
+
+            // Auto-unmute active audio webview
+            if (index === this.activeAudioIndex) {
+                webview.setAudioMuted(false);
+            } else {
+                webview.setAudioMuted(true);
+            }
+        });
     },
 
     clearAll() {

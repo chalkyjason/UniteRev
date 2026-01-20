@@ -18,13 +18,37 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            webviewTag: true // Enable webview tags for embedded browsing
         },
         icon: path.join(__dirname, 'icon.png')
     });
 
     // Load the app
     mainWindow.loadFile(path.join(__dirname, 'app', 'index.html'));
+
+    // Set up permission handlers for webviews
+    const session = mainWindow.webContents.session;
+    session.setPermissionRequestHandler((webContents, permission, callback) => {
+        // Allow all clipboard and media permissions
+        const allowedPermissions = [
+            'clipboard-read',
+            'clipboard-write',
+            'clipboard-sanitized-write',
+            'media',
+            'mediaKeySystem',
+            'geolocation',
+            'notifications',
+            'fullscreen',
+            'pointerLock'
+        ];
+
+        if (allowedPermissions.includes(permission)) {
+            callback(true);
+        } else {
+            callback(false);
+        }
+    });
 
     // Create application menu
     const template = [
