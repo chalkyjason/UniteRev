@@ -862,11 +862,45 @@
                 }
             },
 
+            getMainPageUrl(streamer) {
+                // Get the main page/channel URL to check if they're live
+                switch(streamer.platform) {
+                    case 'youtube':
+                        // For YouTube, use the channel URL or handle
+                        if (streamer.handle.startsWith('@')) {
+                            return `https://www.youtube.com/${streamer.handle}`;
+                        } else {
+                            return streamer.profileUrl;
+                        }
+                    case 'twitch':
+                        // For Twitch, use twitch.tv/username
+                        const twitchHandle = streamer.handle.replace('@', '');
+                        return `https://www.twitch.tv/${twitchHandle}`;
+                    case 'x':
+                        // For X, use x.com/username
+                        const xHandle = streamer.handle.replace('@', '');
+                        return `https://x.com/${xHandle}`;
+                    case 'tiktok':
+                        // For TikTok, use tiktok.com/@username/live to check live status
+                        return `https://www.tiktok.com/${streamer.handle}/live`;
+                    case 'facebook':
+                        // For Facebook, use the profile URL
+                        return streamer.profileUrl;
+                    case 'rumble':
+                        // For Rumble, use the profile URL
+                        return streamer.profileUrl;
+                    default:
+                        return streamer.profileUrl;
+                }
+            },
+
             openInViewer(index) {
                 const streamer = this.savedStreamers[index];
+                const mainPageUrl = this.getMainPageUrl(streamer);
+
                 const stream = {
                     name: streamer.displayName,
-                    url: streamer.profileUrl,
+                    url: mainPageUrl,
                     size: '1x1'
                 };
 

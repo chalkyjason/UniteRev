@@ -191,6 +191,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stream-cell.has-stream:hover .stream-overlay {
+            opacity: 1;
         }
 
         .stream-header {
@@ -357,7 +363,12 @@
             pointer-events: all;
             z-index: 100;
             background: rgba(59, 130, 246, 0.8);
-            transition: background 0.2s;
+            opacity: 0;
+            transition: opacity 0.3s ease, background 0.2s;
+        }
+
+        .stream-cell.has-stream:hover .resize-handle {
+            opacity: 1;
         }
 
         .resize-handle:hover {
