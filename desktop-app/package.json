@@ -72,10 +72,13 @@
     }
   },
   "dependencies": {
-    "electron-updater": "^6.1.7"
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
-    "electron": "^28.1.0",
-    "electron-builder": "^24.9.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "resolutions": {
+    "camelcase": "^8.0.0"
   }
 }
