@@ -27,13 +27,37 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
 
 **Just double-click the launcher for your platform:**
 
-- **Linux/Mac**: Double-click `launch.sh` (or run `./launch.sh` in terminal)
+- **macOS**: Double-click `launch.command` (best for Mac)
+  - If you get a security warning, see "macOS Security" below
+  - Alternative: Use `launch.sh` (right-click → Open → Open)
+- **Linux**: Double-click `launch.sh` (or run `./launch.sh` in terminal)
 - **Windows**: Double-click `launch.bat`
 
 This will:
 - ✅ Start the local server
 - ✅ Automatically open your browser to the app
 - ✅ You're ready to add streams!
+
+### macOS Security Warning
+
+If you see **"launch.sh Not Opened"** warning on macOS:
+
+**Option 1: Use launch.command** (Recommended)
+- Double-click `launch.command` instead
+- macOS treats `.command` files as trusted
+
+**Option 2: Right-Click Method**
+- Right-click `launch.sh` → Choose "Open" → Click "Open" in the dialog
+- This bypasses Gatekeeper for that file
+
+**Option 3: Remove Quarantine** (Terminal)
+```bash
+cd standalone
+xattr -d com.apple.quarantine launch.sh
+./launch.sh
+```
+
+This is normal macOS security - the files are safe, just not signed with an Apple Developer certificate.
 
 ### Manual Start
 
