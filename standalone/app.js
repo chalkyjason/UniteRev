@@ -392,6 +392,14 @@ const app = {
         });
     },
 
+    // Check if streamer is already saved
+    isStreamerSaved(url) {
+        const platformInfo = this.extractPlatformInfo(url);
+        if (!platformInfo) return false;
+
+        return this.savedStreamers.some(s => s.id === platformInfo.id);
+    },
+
     // Render Grid
     render() {
         const [rows, cols] = this.gridLayout.split('x').map(Number);
@@ -421,6 +429,7 @@ const app = {
                 cell.style.gridRow = `span ${spanRows}`;
 
                 const embedUrl = this.getEmbedUrl(stream.url);
+                const isAlreadySaved = this.isStreamerSaved(stream.url);
 
                 cell.innerHTML = `
                     <iframe
@@ -447,7 +456,7 @@ const app = {
                                     <button class="btn-size ${size === '3x3' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '3x3')" title="3×3">3×3</button>
                                     <button class="btn-size ${size === '4x4' ? 'active' : ''}" onclick="app.setStreamSize(${i}, '4x4')" title="4×4">4×4</button>
                                 </div>
-                                <button class="btn-save-streamer" onclick="app.saveStreamerFromStream(${i}); event.stopPropagation();" title="Save streamer to your list">💾</button>
+                                ${!isAlreadySaved ? `<button class="btn-save-streamer" onclick="app.saveStreamerFromStream(${i}); event.stopPropagation();" title="Save streamer to your list">💾</button>` : ''}
                                 <button class="btn-remove" onclick="app.removeStream(${i}); event.stopPropagation();">✕</button>
                             </div>
                         </div>

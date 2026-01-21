@@ -17,11 +17,22 @@
             color: white;
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            flex: 1;
+            min-width: 500px;
         }
 
         .header {
@@ -258,6 +269,179 @@
             color: #64748B;
         }
 
+        /* Unified Chat Panel */
+        .chat-panel {
+            flex: 0 0 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 40px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            margin-bottom: 16px;
+        }
+
+        .chat-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1E293B;
+            margin-bottom: 12px;
+        }
+
+        .chat-logins {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .login-btn {
+            padding: 8px 16px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            background: white;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .login-btn:hover {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .login-btn.connected {
+            border-color: #10B981;
+            background: #10B981;
+            color: white;
+        }
+
+        .login-btn.connected:hover {
+            background: #059669;
+        }
+
+        .platform-badge {
+            font-size: 16px;
+        }
+
+        .chat-feed {
+            flex: 1;
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            background: #F8FAFC;
+            border-left: 3px solid #CBD5E1;
+        }
+
+        .chat-message.twitch {
+            border-left-color: #9146FF;
+        }
+
+        .chat-message.youtube {
+            border-left-color: #FF0000;
+        }
+
+        .chat-message.twitter {
+            border-left-color: #1DA1F2;
+        }
+
+        .chat-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .chat-platform {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #CBD5E1;
+            color: #475569;
+        }
+
+        .chat-platform.twitch {
+            background: #9146FF;
+            color: white;
+        }
+
+        .chat-platform.youtube {
+            background: #FF0000;
+            color: white;
+        }
+
+        .chat-platform.twitter {
+            background: #1DA1F2;
+            color: white;
+        }
+
+        .chat-username {
+            font-weight: 600;
+            color: #1E293B;
+            font-size: 13px;
+        }
+
+        .chat-timestamp {
+            font-size: 11px;
+            color: #94A3B8;
+            margin-left: auto;
+        }
+
+        .chat-text {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .chat-status {
+            padding: 12px;
+            background: #FEF3C7;
+            border: 1px solid #FCD34D;
+            border-radius: 6px;
+            color: #92400E;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .chat-status.connected {
+            background: #D1FAE5;
+            border-color: #6EE7B7;
+            color: #065F46;
+        }
+
+        .chat-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94A3B8;
+        }
+
+        .chat-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
         .empty-icon {
             font-size: 64px;
             margin-bottom: 16px;
@@ -357,6 +541,7 @@
     </style>
 </head>
 <body>
+    <div class="main-container">
     <div class="container">
         <div class="header">
             <div class="logo">🚩</div>
@@ -438,6 +623,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Unified Chat Panel -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <h2 class="chat-title">💬 Unified Chat</h2>
+
+            <div class="chat-logins">
+                <button class="login-btn" id="twitchLoginBtn" onclick="chatManager.loginTwitch()">
+                    <span class="platform-badge">💜</span>
+                    <span id="twitchLoginText">Login Twitch</span>
+                </button>
+                <button class="login-btn" id="youtubeLoginBtn" onclick="chatManager.loginYouTube()">
+                    <span class="platform-badge">▶️</span>
+                    <span id="youtubeLoginText">Login YouTube</span>
+                </button>
+            </div>
+
+            <div id="chatStatus"></div>
+        </div>
+
+        <div class="chat-feed" id="chatFeed">
+            <div class="chat-empty">
+                <div class="chat-empty-icon">💬</div>
+                <div>Login to platforms to see unified chat</div>
+                <div style="font-size: 12px; margin-top: 8px;">All platform chats will appear here in real-time</div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Twitch IRC Library -->
+    <script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js"></script>
 
     <script>
         const controlPanel = {
@@ -862,11 +1079,45 @@
                 }
             },
 
+            getMainPageUrl(streamer) {
+                // Get the main page/channel URL to check if they're live
+                switch(streamer.platform) {
+                    case 'youtube':
+                        // For YouTube, use the channel URL or handle
+                        if (streamer.handle.startsWith('@')) {
+                            return `https://www.youtube.com/${streamer.handle}`;
+                        } else {
+                            return streamer.profileUrl;
+                        }
+                    case 'twitch':
+                        // For Twitch, use twitch.tv/username
+                        const twitchHandle = streamer.handle.replace('@', '');
+                        return `https://www.twitch.tv/${twitchHandle}`;
+                    case 'x':
+                        // For X, use x.com/username
+                        const xHandle = streamer.handle.replace('@', '');
+                        return `https://x.com/${xHandle}`;
+                    case 'tiktok':
+                        // For TikTok, use tiktok.com/@username/live to check live status
+                        return `https://www.tiktok.com/${streamer.handle}/live`;
+                    case 'facebook':
+                        // For Facebook, use the profile URL
+                        return streamer.profileUrl;
+                    case 'rumble':
+                        // For Rumble, use the profile URL
+                        return streamer.profileUrl;
+                    default:
+                        return streamer.profileUrl;
+                }
+            },
+
             openInViewer(index) {
                 const streamer = this.savedStreamers[index];
+                const mainPageUrl = this.getMainPageUrl(streamer);
+
                 const stream = {
                     name: streamer.displayName,
-                    url: streamer.profileUrl,
+                    url: mainPageUrl,
                     size: '1x1'
                 };
 
@@ -946,9 +1197,235 @@
             }
         };
 
+        // Chat Manager for Unified Chat
+        const chatManager = {
+            twitchClient: null,
+            twitchToken: null,
+            twitchChannels: [],
+            youtubeToken: null,
+            messages: [],
+            maxMessages: 100,
+
+            init() {
+                this.loadTokens();
+                this.updateLoginButtons();
+
+                // Auto-connect if we have tokens
+                if (this.twitchToken) {
+                    this.connectTwitch();
+                }
+            },
+
+            loadTokens() {
+                this.twitchToken = localStorage.getItem('twitch_token');
+                this.twitchChannels = JSON.parse(localStorage.getItem('twitch_channels') || '[]');
+                this.youtubeToken = localStorage.getItem('youtube_token');
+            },
+
+            saveTokens() {
+                if (this.twitchToken) {
+                    localStorage.setItem('twitch_token', this.twitchToken);
+                }
+                if (this.twitchChannels.length > 0) {
+                    localStorage.setItem('twitch_channels', JSON.stringify(this.twitchChannels));
+                }
+                if (this.youtubeToken) {
+                    localStorage.setItem('youtube_token', this.youtubeToken);
+                }
+            },
+
+            updateLoginButtons() {
+                const twitchBtn = document.getElementById('twitchLoginBtn');
+                const twitchText = document.getElementById('twitchLoginText');
+                const youtubeBtn = document.getElementById('youtubeLoginBtn');
+                const youtubeText = document.getElementById('youtubeLoginText');
+
+                if (this.twitchToken) {
+                    twitchBtn.classList.add('connected');
+                    twitchText.textContent = 'Connected';
+                } else {
+                    twitchBtn.classList.remove('connected');
+                    twitchText.textContent = 'Login Twitch';
+                }
+
+                if (this.youtubeToken) {
+                    youtubeBtn.classList.add('connected');
+                    youtubeText.textContent = 'Connected';
+                } else {
+                    youtubeBtn.classList.remove('connected');
+                    youtubeText.textContent = 'Login YouTube';
+                }
+            },
+
+            loginTwitch() {
+                if (this.twitchToken) {
+                    // Already connected - offer to disconnect
+                    if (confirm('Disconnect from Twitch?')) {
+                        this.disconnectTwitch();
+                    }
+                    return;
+                }
+
+                // Simple token input for now (user gets it from https://twitchapps.com/tmi/)
+                const token = prompt(
+                    'Get your Twitch OAuth token from:\nhttps://twitchapps.com/tmi/\n\nPaste token here (starts with oauth:):'
+                );
+
+                if (token && token.startsWith('oauth:')) {
+                    this.twitchToken = token;
+
+                    // Ask for channels to join
+                    const channels = prompt('Enter Twitch channel names to join (comma-separated):\nExample: hasanabi,pokimane');
+                    if (channels) {
+                        this.twitchChannels = channels.split(',').map(c => c.trim().toLowerCase());
+                    }
+
+                    this.saveTokens();
+                    this.connectTwitch();
+                }
+            },
+
+            async connectTwitch() {
+                if (!this.twitchToken || !window.tmi) {
+                    console.error('TMI.js not loaded or no token');
+                    return;
+                }
+
+                try {
+                    this.twitchClient = new tmi.Client({
+                        options: { debug: false },
+                        identity: {
+                            username: 'justinfan' + Math.floor(Math.random() * 100000),
+                            password: this.twitchToken
+                        },
+                        channels: this.twitchChannels
+                    });
+
+                    this.twitchClient.on('message', (channel, tags, message, self) => {
+                        this.addMessage({
+                            platform: 'twitch',
+                            username: tags['display-name'] || tags.username,
+                            text: message,
+                            timestamp: new Date()
+                        });
+                    });
+
+                    this.twitchClient.on('connected', () => {
+                        this.showStatus('Connected to Twitch chat!', 'connected');
+                        this.updateLoginButtons();
+                    });
+
+                    await this.twitchClient.connect();
+                } catch (error) {
+                    console.error('Twitch connection error:', error);
+                    this.showStatus('Failed to connect to Twitch', 'error');
+                }
+            },
+
+            disconnectTwitch() {
+                if (this.twitchClient) {
+                    this.twitchClient.disconnect();
+                    this.twitchClient = null;
+                }
+                this.twitchToken = null;
+                this.twitchChannels = [];
+                localStorage.removeItem('twitch_token');
+                localStorage.removeItem('twitch_channels');
+                this.updateLoginButtons();
+                this.showStatus('Disconnected from Twitch');
+            },
+
+            loginYouTube() {
+                if (this.youtubeToken) {
+                    if (confirm('Disconnect from YouTube?')) {
+                        this.disconnectYouTube();
+                    }
+                    return;
+                }
+
+                alert('YouTube Live Chat integration requires OAuth 2.0 setup.\n\nFor now, use Twitch chat. YouTube support coming soon!');
+            },
+
+            disconnectYouTube() {
+                this.youtubeToken = null;
+                localStorage.removeItem('youtube_token');
+                this.updateLoginButtons();
+            },
+
+            addMessage(msg) {
+                this.messages.push(msg);
+
+                // Keep only last N messages
+                if (this.messages.length > this.maxMessages) {
+                    this.messages.shift();
+                }
+
+                this.renderMessages();
+            },
+
+            renderMessages() {
+                const feed = document.getElementById('chatFeed');
+
+                if (this.messages.length === 0) {
+                    feed.innerHTML = `
+                        <div class="chat-empty">
+                            <div class="chat-empty-icon">💬</div>
+                            <div>Login to platforms to see unified chat</div>
+                            <div style="font-size: 12px; margin-top: 8px;">All platform chats will appear here in real-time</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                feed.innerHTML = this.messages.map(msg => {
+                    const time = msg.timestamp.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    return `
+                        <div class="chat-message ${msg.platform}">
+                            <div class="chat-meta">
+                                <span class="chat-platform ${msg.platform}">${msg.platform}</span>
+                                <span class="chat-username">${this.escapeHtml(msg.username)}</span>
+                                <span class="chat-timestamp">${time}</span>
+                            </div>
+                            <div class="chat-text">${this.escapeHtml(msg.text)}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Auto-scroll to bottom
+                feed.scrollTop = feed.scrollHeight;
+            },
+
+            showStatus(message, type = '') {
+                const status = document.getElementById('chatStatus');
+                if (!message) {
+                    status.innerHTML = '';
+                    return;
+                }
+
+                status.innerHTML = `<div class="chat-status ${type}">${message}</div>`;
+
+                if (type !== 'connected') {
+                    setTimeout(() => {
+                        status.innerHTML = '';
+                    }, 3000);
+                }
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             controlPanel.init();
+            chatManager.init();
         });
     </script>
 </body>
