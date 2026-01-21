@@ -17,22 +17,22 @@
             color: white;
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body.custom-bg {
+            background: var(--custom-bg, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
         }
 
         .main-container {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            max-width: 1600px;
-            margin: 0 auto;
+            position: relative;
             width: 100%;
+            height: calc(100vh - 40px);
         }
 
         .container {
-            flex: 1;
-            min-width: 500px;
+            /* Legacy container - will be replaced by floating panels */
         }
 
         .header {
@@ -56,12 +56,113 @@
             font-size: 14px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.95);
+        /* Floating Panel System */
+        .floating-panel {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.98);
             border-radius: 16px;
-            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            max-width: 800px;
+            max-height: calc(100vh - 80px);
+            z-index: 1;
+            transition: box-shadow 0.2s;
+        }
+
+        .floating-panel:hover {
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-panel.active {
+            z-index: 100;
+        }
+
+        .floating-panel.minimized {
+            height: auto !important;
+            max-height: none !important;
+        }
+
+        .floating-panel.minimized .panel-content {
+            display: none;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px 16px 0 0;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            color: white;
+        }
+
+        .panel-header.custom-color {
+            background: var(--panel-color, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .panel-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .panel-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            color: #1E293B;
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .card {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
             color: #1E293B;
         }
 
@@ -269,16 +370,84 @@
             color: #64748B;
         }
 
+        /* Logo Customization */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logo-container:hover {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .logo-display {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 12px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-upload-btn {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Color Customization */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .color-option {
+            height: 60px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option.active {
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .color-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
         /* Unified Chat Panel */
         .chat-panel {
-            flex: 0 0 500px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 40px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            /* Will be converted to floating panel */
         }
 
         .chat-header {
@@ -541,24 +710,67 @@
     </style>
 </head>
 <body>
-    <div class="main-container">
-    <div class="container">
-        <div class="header">
-            <div class="logo">🚩</div>
-            <h1>AntifaTimes Control Panel</h1>
-            <p class="subtitle">Manage your streams from a separate monitor</p>
-        </div>
+    <input type="file" id="logoUploadInput" accept="image/*" style="display: none;">
 
-        <div class="status-bar">
-            <div class="status-indicator">
-                <span class="pulse"></span>
-                <span>Connected to Viewer</span>
+    <div class="main-container">
+        <!-- Logo Header Panel -->
+        <div class="floating-panel" id="logoPanel" style="left: 20px; top: 20px; width: 300px;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span id="headerLogoDisplay">🚩</span>
+                    <span>Control Panel</span>
+                </div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('logoPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="logo-container" onclick="document.getElementById('logoUploadInput').click()">
+                    <div class="logo-display" id="logoDisplay">🚩</div>
+                    <div class="logo-upload-btn">Click to upload custom logo</div>
+                </div>
+                <div class="status-bar">
+                    <div class="status-indicator">
+                        <span class="pulse"></span>
+                        <span>Connected to Viewer</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Add New Stream -->
-        <div class="card">
-            <h2 class="card-title">➕ Add Stream</h2>
+        <!-- Customization Panel -->
+        <div class="floating-panel" id="customizePanel" style="left: 340px; top: 20px; width: 320px;">
+            <div class="panel-header">
+                <div class="panel-title">🎨 Customize</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('customizePanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Background Theme</h3>
+                    <div class="color-grid" id="bgColorGrid"></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Panel Color</h3>
+                    <div class="color-grid" id="panelColorGrid"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="panelManager.resetCustomization()" style="width: 100%; margin-top: 12px;">
+                    Reset to Default
+                </button>
+            </div>
+        </div>
+
+        <!-- Add Stream Panel -->
+        <div class="floating-panel" id="addStreamPanel" style="left: 20px; top: 300px; width: 400px;">
+            <div class="panel-header">
+                <div class="panel-title">➕ Add Stream</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('addStreamPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="card">
 
             <div class="form-group">
                 <label class="form-label">Stream Name</label>
@@ -587,76 +799,360 @@
                 <span>➕</span>
                 <span>Add to Viewer</span>
             </button>
-        </div>
-
-        <!-- Grid Layout Selector -->
-        <div class="card">
-            <h2 class="card-title">📐 Grid Layout</h2>
-            <div class="grid-selector" id="layoutSelector"></div>
-        </div>
-
-        <!-- Saved Streamers -->
-        <div class="card">
-            <h2 class="card-title">💾 Saved Streamers</h2>
-            <div class="saved-streamers-list" id="savedStreamersList"></div>
-        </div>
-
-        <!-- Audio Control -->
-        <div class="card">
-            <h2 class="card-title">🔊 Audio Control</h2>
-            <div class="form-help" style="margin-bottom: 12px;">
-                Click to switch audio source (only one stream plays audio at a time)
-            </div>
-            <div id="audioControlList"></div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <h2 class="card-title">⚡ Quick Actions</h2>
-            <div class="action-buttons">
-                <button class="btn btn-secondary" onclick="controlPanel.clearAllStreams()">
-                    🗑️ Clear All
-                </button>
-                <button class="btn btn-secondary" onclick="controlPanel.refreshViewer()">
-                    🔄 Refresh Viewer
-                </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Unified Chat Panel -->
-    <div class="chat-panel">
-        <div class="chat-header">
-            <h2 class="chat-title">💬 Unified Chat</h2>
-
-            <div class="chat-logins">
-                <button class="login-btn" id="twitchLoginBtn" onclick="chatManager.loginTwitch()">
-                    <span class="platform-badge">💜</span>
-                    <span id="twitchLoginText">Login Twitch</span>
-                </button>
-                <button class="login-btn" id="youtubeLoginBtn" onclick="chatManager.loginYouTube()">
-                    <span class="platform-badge">▶️</span>
-                    <span id="youtubeLoginText">Login YouTube</span>
-                </button>
+        <!-- Grid Layout Panel -->
+        <div class="floating-panel" id="gridPanel" style="left: 680px; top: 20px; width: 350px;">
+            <div class="panel-header">
+                <div class="panel-title">📐 Grid Layout</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('gridPanel')" title="Minimize">−</button>
+                </div>
             </div>
-
-            <div id="chatStatus"></div>
-        </div>
-
-        <div class="chat-feed" id="chatFeed">
-            <div class="chat-empty">
-                <div class="chat-empty-icon">💬</div>
-                <div>Login to platforms to see unified chat</div>
-                <div style="font-size: 12px; margin-top: 8px;">All platform chats will appear here in real-time</div>
+            <div class="panel-content">
+                <div class="grid-selector" id="layoutSelector"></div>
             </div>
         </div>
-    </div>
+
+        <!-- Saved Streamers Panel -->
+        <div class="floating-panel" id="streamersPanel" style="left: 440px; top: 300px; width: 450px;">
+            <div class="panel-header">
+                <div class="panel-title">💾 Saved Streamers</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('streamersPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="saved-streamers-list" id="savedStreamersList"></div>
+            </div>
+        </div>
+
+        <!-- Audio Control Panel -->
+        <div class="floating-panel" id="audioPanel" style="left: 910px; top: 300px; width: 400px;">
+            <div class="panel-header">
+                <div class="panel-title">🔊 Audio Control</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('audioPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="form-help" style="margin-bottom: 12px;">
+                    Click to switch audio source (only one stream plays audio at a time)
+                </div>
+                <div id="audioControlList"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="floating-panel" id="actionsPanel" style="right: 20px; bottom: 20px; width: 300px;">
+            <div class="panel-header">
+                <div class="panel-title">⚡ Quick Actions</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('actionsPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="controlPanel.clearAllStreams()">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn btn-secondary" onclick="controlPanel.refreshViewer()">
+                        🔄 Refresh Viewer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unified Chat Panel -->
+        <div class="floating-panel" id="chatPanel" style="right: 20px; top: 20px; width: 500px; height: 600px;">
+            <div class="panel-header">
+                <div class="panel-title">💬 Unified Chat</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('chatPanel')" title="Minimize">−</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="chat-header">
+                    <div class="chat-logins">
+                        <button class="login-btn" id="twitchLoginBtn" onclick="chatManager.loginTwitch()">
+                            <span class="platform-badge">💜</span>
+                            <span id="twitchLoginText">Login Twitch</span>
+                        </button>
+                        <button class="login-btn" id="youtubeLoginBtn" onclick="chatManager.loginYouTube()">
+                            <span class="platform-badge">▶️</span>
+                            <span id="youtubeLoginText">Login YouTube</span>
+                        </button>
+                    </div>
+
+                    <div id="chatStatus"></div>
+                </div>
+
+                <div class="chat-feed" id="chatFeed">
+                    <div class="chat-empty">
+                        <div class="chat-empty-icon">💬</div>
+                        <div>Login to platforms to see unified chat</div>
+                        <div style="font-size: 12px; margin-top: 8px;">All platform chats will appear here in real-time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Twitch IRC Library -->
     <script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js"></script>
 
     <script>
+        // Panel Manager - handles dragging, minimizing, customization
+        const panelManager = {
+            draggingPanel: null,
+            offset: { x: 0, y: 0 },
+            highestZ: 100,
+            customization: {
+                bgTheme: 'default',
+                panelColor: 'default',
+                logoUrl: null
+            },
+
+            init() {
+                this.loadCustomization();
+                this.initPanelDragging();
+                this.initLogoUpload();
+                this.renderColorOptions();
+                this.applyCustomization();
+
+                // Make panels clickable to bring to front
+                document.querySelectorAll('.floating-panel').forEach(panel => {
+                    panel.addEventListener('mousedown', () => this.bringToFront(panel));
+                });
+            },
+
+            initPanelDragging() {
+                document.querySelectorAll('.panel-header').forEach(header => {
+                    header.addEventListener('mousedown', (e) => this.startDrag(e));
+                });
+
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', () => this.stopDrag());
+            },
+
+            startDrag(e) {
+                const panel = e.target.closest('.floating-panel');
+                if (!panel || e.target.closest('.panel-btn')) return;
+
+                this.draggingPanel = panel;
+                this.bringToFront(panel);
+
+                const rect = panel.getBoundingClientRect();
+                this.offset.x = e.clientX - rect.left;
+                this.offset.y = e.clientY - rect.top;
+
+                panel.style.cursor = 'grabbing';
+                e.preventDefault();
+            },
+
+            drag(e) {
+                if (!this.draggingPanel) return;
+
+                let x = e.clientX - this.offset.x;
+                let y = e.clientY - this.offset.y;
+
+                // Keep within viewport
+                const rect = this.draggingPanel.getBoundingClientRect();
+                const maxX = window.innerWidth - rect.width;
+                const maxY = window.innerHeight - rect.height;
+
+                x = Math.max(0, Math.min(x, maxX));
+                y = Math.max(0, Math.min(y, maxY));
+
+                this.draggingPanel.style.left = x + 'px';
+                this.draggingPanel.style.top = y + 'px';
+                this.draggingPanel.style.right = 'auto';
+                this.draggingPanel.style.bottom = 'auto';
+
+                this.savePanelPositions();
+            },
+
+            stopDrag() {
+                if (this.draggingPanel) {
+                    this.draggingPanel.style.cursor = '';
+                    this.draggingPanel = null;
+                }
+            },
+
+            bringToFront(panel) {
+                this.highestZ++;
+                panel.style.zIndex = this.highestZ;
+                document.querySelectorAll('.floating-panel').forEach(p => p.classList.remove('active'));
+                panel.classList.add('active');
+            },
+
+            minimizePanel(panelId) {
+                const panel = document.getElementById(panelId);
+                const isMinimized = panel.classList.toggle('minimized');
+                const btn = panel.querySelector('.panel-controls .panel-btn');
+                btn.textContent = isMinimized ? '+' : '−';
+                btn.title = isMinimized ? 'Maximize' : 'Minimize';
+                this.savePanelPositions();
+            },
+
+            initLogoUpload() {
+                const input = document.getElementById('logoUploadInput');
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const logoUrl = e.target.result;
+                            this.customization.logoUrl = logoUrl;
+                            this.updateLogo(logoUrl);
+                            this.saveCustomization();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            },
+
+            updateLogo(url) {
+                const logoDisplay = document.getElementById('logoDisplay');
+                const headerLogo = document.getElementById('headerLogoDisplay');
+
+                if (url) {
+                    logoDisplay.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                    headerLogo.innerHTML = `<img src="${url}" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">`;
+                } else {
+                    logoDisplay.innerHTML = '🚩';
+                    headerLogo.innerHTML = '🚩';
+                }
+            },
+
+            renderColorOptions() {
+                const bgThemes = [
+                    { id: 'default', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { id: 'sunset', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                    { id: 'ocean', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+                    { id: 'forest', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+                    { id: 'night', gradient: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)' },
+                    { id: 'fire', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }
+                ];
+
+                const panelColors = [
+                    { id: 'default', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { id: 'red', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                    { id: 'blue', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+                    { id: 'green', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+                    { id: 'dark', gradient: 'linear-gradient(135deg, #2c3e50 0%, #4a5568 100%)' },
+                    { id: 'gold', gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' }
+                ];
+
+                document.getElementById('bgColorGrid').innerHTML = bgThemes.map(theme => `
+                    <div class="color-option ${this.customization.bgTheme === theme.id ? 'active' : ''}"
+                         style="background: ${theme.gradient}"
+                         onclick="panelManager.setBgTheme('${theme.id}', '${theme.gradient}')">
+                    </div>
+                `).join('');
+
+                document.getElementById('panelColorGrid').innerHTML = panelColors.map(color => `
+                    <div class="color-option ${this.customization.panelColor === color.id ? 'active' : ''}"
+                         style="background: ${color.gradient}"
+                         onclick="panelManager.setPanelColor('${color.id}', '${color.gradient}')">
+                    </div>
+                `).join('');
+            },
+
+            setBgTheme(id, gradient) {
+                this.customization.bgTheme = id;
+                this.customization.bgGradient = gradient;
+                document.body.style.background = gradient;
+                this.renderColorOptions();
+                this.saveCustomization();
+            },
+
+            setPanelColor(id, gradient) {
+                this.customization.panelColor = id;
+                this.customization.panelGradient = gradient;
+                document.querySelectorAll('.panel-header').forEach(header => {
+                    header.style.background = gradient;
+                });
+                this.renderColorOptions();
+                this.saveCustomization();
+            },
+
+            applyCustomization() {
+                if (this.customization.bgGradient) {
+                    document.body.style.background = this.customization.bgGradient;
+                }
+                if (this.customization.panelGradient) {
+                    document.querySelectorAll('.panel-header').forEach(header => {
+                        header.style.background = this.customization.panelGradient;
+                    });
+                }
+                if (this.customization.logoUrl) {
+                    this.updateLogo(this.customization.logoUrl);
+                }
+
+                // Load panel positions
+                const positions = JSON.parse(localStorage.getItem('panel_positions') || '{}');
+                Object.keys(positions).forEach(panelId => {
+                    const panel = document.getElementById(panelId);
+                    if (panel && positions[panelId]) {
+                        const pos = positions[panelId];
+                        if (pos.left !== undefined) panel.style.left = pos.left;
+                        if (pos.top !== undefined) panel.style.top = pos.top;
+                        if (pos.right !== undefined) panel.style.right = pos.right;
+                        if (pos.bottom !== undefined) panel.style.bottom = pos.bottom;
+                        if (pos.minimized) {
+                            panel.classList.add('minimized');
+                            const btn = panel.querySelector('.panel-controls .panel-btn');
+                            if (btn) {
+                                btn.textContent = '+';
+                                btn.title = 'Maximize';
+                            }
+                        }
+                    }
+                });
+            },
+
+            resetCustomization() {
+                if (confirm('Reset all customizations to default?')) {
+                    this.customization = {
+                        bgTheme: 'default',
+                        panelColor: 'default',
+                        logoUrl: null
+                    };
+                    localStorage.removeItem('panel_customization');
+                    localStorage.removeItem('panel_positions');
+                    location.reload();
+                }
+            },
+
+            saveCustomization() {
+                localStorage.setItem('panel_customization', JSON.stringify(this.customization));
+            },
+
+            loadCustomization() {
+                const saved = localStorage.getItem('panel_customization');
+                if (saved) {
+                    this.customization = JSON.parse(saved);
+                }
+            },
+
+            savePanelPositions() {
+                const positions = {};
+                document.querySelectorAll('.floating-panel').forEach(panel => {
+                    positions[panel.id] = {
+                        left: panel.style.left,
+                        top: panel.style.top,
+                        right: panel.style.right,
+                        bottom: panel.style.bottom,
+                        minimized: panel.classList.contains('minimized')
+                    };
+                });
+                localStorage.setItem('panel_positions', JSON.stringify(positions));
+            }
+        };
+
         const controlPanel = {
             // State (synced with main viewer via localStorage)
             gridLayout: '2x2',
@@ -1424,6 +1920,7 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
+            panelManager.init();
             controlPanel.init();
             chatManager.init();
         });
