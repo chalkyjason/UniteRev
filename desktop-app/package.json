@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "description": "Multi-stream viewer for protests and activism",
   "main": "main.js",
-  "author": "AntifaTimes",
+  "author": {
+    "name": "AntifaTimes",
+    "email": "chalkyjason@gmail.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,14 +36,12 @@
     ],
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "icon.svg",
       "target": [
         "dmg",
         "zip"
       ]
     },
     "win": {
-      "icon": "icon.svg",
       "target": [
         {
           "target": "nsis",
@@ -51,7 +52,6 @@
       ]
     },
     "linux": {
-      "icon": "icon.svg",
       "target": [
         "AppImage",
         "deb"
