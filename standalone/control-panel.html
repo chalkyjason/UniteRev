@@ -874,7 +874,7 @@
 
     <div class="main-container">
         <!-- Logo Header Panel -->
-        <div class="floating-panel" id="logoPanel" style="left: 20px; top: 20px; width: 300px;">
+        <div class="floating-panel minimized" id="logoPanel" style="left: 20px; top: 20px; width: 300px;">
             <div class="panel-header">
                 <div class="panel-title">
                     <span id="headerLogoDisplay">🚩</span>
@@ -882,6 +882,7 @@
                 </div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('logoPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('logoPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -899,11 +900,12 @@
         </div>
 
         <!-- Customization Panel -->
-        <div class="floating-panel" id="customizePanel" style="left: 340px; top: 20px; width: 320px;">
+        <div class="floating-panel minimized" id="customizePanel" style="left: 20px; top: 80px; width: 320px;">
             <div class="panel-header">
                 <div class="panel-title">🎨 Customize</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('customizePanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('customizePanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -922,11 +924,12 @@
         </div>
 
         <!-- Add Stream Panel -->
-        <div class="floating-panel" id="addStreamPanel" style="left: 20px; top: 300px; width: 400px;">
+        <div class="floating-panel minimized" id="addStreamPanel" style="left: 20px; top: 140px; width: 400px;">
             <div class="panel-header">
                 <div class="panel-title">➕ Add Stream</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('addStreamPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('addStreamPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -964,11 +967,12 @@
         </div>
 
         <!-- Grid Layout Panel -->
-        <div class="floating-panel" id="gridPanel" style="left: 680px; top: 20px; width: 350px;">
+        <div class="floating-panel minimized" id="gridPanel" style="left: 20px; top: 200px; width: 350px;">
             <div class="panel-header">
                 <div class="panel-title">📐 Grid Layout</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('gridPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('gridPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -977,11 +981,12 @@
         </div>
 
         <!-- Saved Streamers Panel -->
-        <div class="floating-panel" id="streamersPanel" style="left: 440px; top: 300px; width: 450px;">
+        <div class="floating-panel minimized" id="streamersPanel" style="left: 20px; top: 260px; width: 450px;">
             <div class="panel-header">
                 <div class="panel-title">💾 Saved Streamers</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('streamersPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('streamersPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -990,11 +995,12 @@
         </div>
 
         <!-- Audio Control Panel -->
-        <div class="floating-panel" id="audioPanel" style="left: 910px; top: 300px; width: 400px;">
+        <div class="floating-panel minimized" id="audioPanel" style="left: 20px; top: 320px; width: 400px;">
             <div class="panel-header">
                 <div class="panel-title">🔊 Audio Control</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('audioPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('audioPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -1006,11 +1012,12 @@
         </div>
 
         <!-- Quick Actions Panel -->
-        <div class="floating-panel" id="actionsPanel" style="right: 20px; bottom: 20px; width: 300px;">
+        <div class="floating-panel minimized" id="actionsPanel" style="left: 20px; top: 380px; width: 300px;">
             <div class="panel-header">
                 <div class="panel-title">⚡ Quick Actions</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('actionsPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('actionsPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -1026,11 +1033,12 @@
         </div>
 
         <!-- Unified Chat Panel -->
-        <div class="floating-panel" id="chatPanel" style="right: 20px; top: 20px; width: 500px; height: 600px;">
+        <div class="floating-panel minimized" id="chatPanel" style="left: 20px; top: 440px; width: 500px; height: 600px;">
             <div class="panel-header">
                 <div class="panel-title">💬 Unified Chat</div>
                 <div class="panel-controls">
                     <button class="panel-btn" onclick="panelManager.minimizePanel('chatPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('chatPanel')" title="Close">✕</button>
                 </div>
             </div>
             <div class="panel-content">
@@ -1058,6 +1066,107 @@
                 </div>
             </div>
         </div>
+
+        <!-- Stream Overlays & Alerts Panel -->
+        <div class="floating-panel minimized" id="overlaysPanel" style="left: 20px; top: 500px; width: 500px;">
+            <div class="panel-header">
+                <div class="panel-title">✨ Stream Overlays & Alerts</div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="panelManager.minimizePanel('overlaysPanel')" title="Minimize">−</button>
+                    <button class="panel-btn" onclick="panelManager.closePanel('overlaysPanel')" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Browser Source URL</h3>
+                    <div class="form-group">
+                        <label class="form-label">Overlay URL (for OBS/Streamlabs)</label>
+                        <input type="text" class="form-input" id="overlayUrl" readonly
+                               placeholder="Will generate after configuring alerts">
+                        <button class="btn btn-secondary" onclick="overlayManager.copyOverlayUrl()" style="margin-top: 8px; width: 100%;">
+                            📋 Copy URL
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Alert Configuration</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Alert Type</label>
+                        <select class="form-input" id="alertType">
+                            <option value="follow">New Follower</option>
+                            <option value="subscribe">New Subscriber</option>
+                            <option value="donation">Donation/Tip</option>
+                            <option value="raid">Raid Alert</option>
+                            <option value="host">Host Alert</option>
+                            <option value="bits">Bits/Cheer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Alert Text Template</label>
+                        <input type="text" class="form-input" id="alertText"
+                               placeholder="e.g., {username} just followed!">
+                        <div class="form-help">
+                            Use {username}, {amount}, {message} as placeholders
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duration (seconds)</label>
+                        <input type="number" class="form-input" id="alertDuration"
+                               value="5" min="1" max="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Alert Sound (optional)</label>
+                        <input type="file" class="form-input" id="alertSound" accept="audio/*">
+                        <div class="form-help">Upload MP3, WAV, or OGG</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" class="form-input" id="alertColor" value="#ffffff">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Animation</label>
+                        <select class="form-input" id="alertAnimation">
+                            <option value="fade">Fade In/Out</option>
+                            <option value="slide">Slide In</option>
+                            <option value="bounce">Bounce</option>
+                            <option value="zoom">Zoom</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="overlayManager.saveAlertConfig()" style="width: 100%;">
+                        💾 Save Alert Config
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Test Alert</h3>
+                    <button class="btn btn-secondary" onclick="overlayManager.testAlert()" style="width: 100%;">
+                        🎬 Preview Alert
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" style="font-size: 16px; margin-bottom: 12px;">Integration</h3>
+                    <div class="form-help" style="margin-bottom: 12px;">
+                        Add this URL as a Browser Source in OBS/Streamlabs OBS:
+                    </div>
+                    <ol style="font-size: 13px; color: #64748B; padding-left: 20px;">
+                        <li>Copy the overlay URL above</li>
+                        <li>In OBS: Sources → Add → Browser</li>
+                        <li>Paste the URL</li>
+                        <li>Set width: 1920, height: 1080</li>
+                        <li>Check "Shutdown source when not visible"</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Twitch IRC Library -->
@@ -1080,7 +1189,8 @@
                 { id: 'streamersPanel', name: '💾 Saved Streamers', visible: true },
                 { id: 'audioPanel', name: '🔊 Audio Control', visible: true },
                 { id: 'actionsPanel', name: '⚡ Quick Actions', visible: true },
-                { id: 'chatPanel', name: '💬 Unified Chat', visible: true }
+                { id: 'chatPanel', name: '💬 Unified Chat', visible: true },
+                { id: 'overlaysPanel', name: '✨ Stream Overlays & Alerts', visible: true }
             ],
             customization: {
                 bgTheme: 'default',
@@ -1177,10 +1287,23 @@
             minimizePanel(panelId) {
                 const panel = document.getElementById(panelId);
                 const isMinimized = panel.classList.toggle('minimized');
-                const btn = panel.querySelector('.panel-controls .panel-btn');
-                btn.textContent = isMinimized ? '+' : '−';
-                btn.title = isMinimized ? 'Maximize' : 'Minimize';
+                const btns = panel.querySelectorAll('.panel-controls .panel-btn');
+                btns[0].textContent = isMinimized ? '+' : '−';
+                btns[0].title = isMinimized ? 'Maximize' : 'Minimize';
                 this.savePanelPositions();
+            },
+
+            closePanel(panelId) {
+                const panel = document.getElementById(panelId);
+                panel.style.display = 'none';
+
+                // Update panel visibility state
+                const panelConfig = this.panels.find(p => p.id === panelId);
+                if (panelConfig) {
+                    panelConfig.visible = false;
+                    this.savePanelVisibility();
+                    this.renderPanelToggles();
+                }
             },
 
             initLogoUpload() {
@@ -1298,12 +1421,21 @@
                         }
                         if (pos.minimized) {
                             panel.classList.add('minimized');
-                            const btn = panel.querySelector('.panel-controls .panel-btn');
-                            if (btn) {
-                                btn.textContent = '+';
-                                btn.title = 'Maximize';
+                            const btns = panel.querySelectorAll('.panel-controls .panel-btn');
+                            if (btns[0]) {
+                                btns[0].textContent = '+';
+                                btns[0].title = 'Maximize';
                             }
                         }
+                    }
+                });
+
+                // Set initial button states for minimized panels
+                document.querySelectorAll('.floating-panel.minimized').forEach(panel => {
+                    const btns = panel.querySelectorAll('.panel-controls .panel-btn');
+                    if (btns[0]) {
+                        btns[0].textContent = '+';
+                        btns[0].title = 'Maximize';
                     }
                 });
             },
@@ -2265,11 +2397,161 @@
             }
         };
 
+        // Overlay Manager for Stream Alerts
+        const overlayManager = {
+            alertConfig: {
+                type: 'follow',
+                text: '{username} just followed!',
+                duration: 5,
+                color: '#ffffff',
+                animation: 'fade',
+                soundUrl: null
+            },
+
+            init() {
+                this.loadAlertConfig();
+                this.generateOverlayUrl();
+            },
+
+            loadAlertConfig() {
+                const saved = localStorage.getItem('alert_config');
+                if (saved) {
+                    this.alertConfig = JSON.parse(saved);
+                    this.applyConfigToForm();
+                }
+            },
+
+            applyConfigToForm() {
+                document.getElementById('alertType').value = this.alertConfig.type;
+                document.getElementById('alertText').value = this.alertConfig.text;
+                document.getElementById('alertDuration').value = this.alertConfig.duration;
+                document.getElementById('alertColor').value = this.alertConfig.color;
+                document.getElementById('alertAnimation').value = this.alertConfig.animation;
+            },
+
+            saveAlertConfig() {
+                // Get sound file if uploaded
+                const soundFile = document.getElementById('alertSound').files[0];
+                if (soundFile) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.alertConfig.soundUrl = e.target.result;
+                        this.saveConfig();
+                    };
+                    reader.readAsDataURL(soundFile);
+                } else {
+                    this.saveConfig();
+                }
+            },
+
+            saveConfig() {
+                this.alertConfig.type = document.getElementById('alertType').value;
+                this.alertConfig.text = document.getElementById('alertText').value;
+                this.alertConfig.duration = parseInt(document.getElementById('alertDuration').value);
+                this.alertConfig.color = document.getElementById('alertColor').value;
+                this.alertConfig.animation = document.getElementById('alertAnimation').value;
+
+                localStorage.setItem('alert_config', JSON.stringify(this.alertConfig));
+                this.generateOverlayUrl();
+
+                alert('Alert configuration saved! Copy the overlay URL for OBS.');
+            },
+
+            generateOverlayUrl() {
+                // Generate a unique URL that can be used as browser source
+                const baseUrl = window.location.origin + window.location.pathname.replace('control-panel.html', '');
+                const overlayUrl = `${baseUrl}overlay.html`;
+                document.getElementById('overlayUrl').value = overlayUrl;
+            },
+
+            copyOverlayUrl() {
+                const urlInput = document.getElementById('overlayUrl');
+                urlInput.select();
+                document.execCommand('copy');
+
+                // Show feedback
+                const btn = event.target.closest('.btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Copied!';
+                btn.style.background = '#10B981';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            },
+
+            testAlert() {
+                // Show preview in a popup window
+                const config = this.alertConfig;
+                const testWindow = window.open('', 'Alert Preview', 'width=800,height=200');
+
+                testWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                background: transparent;
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                height: 100vh;
+                            }
+                            .alert {
+                                font-size: 36px;
+                                font-weight: bold;
+                                color: ${config.color};
+                                text-align: center;
+                                padding: 20px;
+                                background: rgba(0, 0, 0, 0.8);
+                                border-radius: 12px;
+                                animation: ${config.animation} ${config.duration}s ease-in-out;
+                            }
+                            @keyframes fade {
+                                0%, 100% { opacity: 0; }
+                                10%, 90% { opacity: 1; }
+                            }
+                            @keyframes slide {
+                                0% { transform: translateX(-100%); }
+                                10%, 90% { transform: translateX(0); }
+                                100% { transform: translateX(100%); }
+                            }
+                            @keyframes bounce {
+                                0%, 100% { transform: translateY(-100%); opacity: 0; }
+                                10% { transform: translateY(0); opacity: 1; }
+                                90% { transform: translateY(0); opacity: 1; }
+                            }
+                            @keyframes zoom {
+                                0%, 100% { transform: scale(0); opacity: 0; }
+                                10%, 90% { transform: scale(1); opacity: 1; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="alert">
+                            ${config.text.replace('{username}', 'TestUser123').replace('{amount}', '$5.00').replace('{message}', 'Great stream!')}
+                        </div>
+                        ${config.soundUrl ? `<audio autoplay><source src="${config.soundUrl}"></audio>` : ''}
+                    </body>
+                    </html>
+                `);
+
+                // Auto-close after duration
+                setTimeout(() => {
+                    testWindow.close();
+                }, (config.duration + 0.5) * 1000);
+            }
+        };
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             panelManager.init();
             controlPanel.init();
             chatManager.init();
+            overlayManager.init();
         });
     </script>
 </body>
