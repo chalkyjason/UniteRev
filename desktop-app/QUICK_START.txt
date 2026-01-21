@@ -1,0 +1,152 @@
+============================================
+   QUICK START - BUILD & DISTRIBUTE
+============================================
+
+📦 STEP 1: BUILD THE APP
+-------------------------
+
+On Mac/Linux:
+    cd desktop-app
+    chmod +x build.sh
+    ./build.sh
+
+On Windows:
+    cd desktop-app
+    build.bat
+
+The script will:
+✅ Install dependencies
+✅ Build installer for your platform
+✅ Place files in dist/ folder
+
+⏱️  Takes 5-10 minutes (mostly downloading Electron)
+
+
+📂 STEP 2: FIND YOUR INSTALLERS
+--------------------------------
+
+Look in: desktop-app/dist/
+
+You'll find:
+🍎 Mac:     AntifaTimes-Stream-Manager-1.0.0.dmg
+🪟 Windows: AntifaTimes-Stream-Manager-Setup-1.0.0.exe
+🐧 Linux:   AntifaTimes-Stream-Manager-1.0.0.AppImage
+
+
+📤 STEP 3: DISTRIBUTE
+---------------------
+
+OPTION A: GitHub Releases (Recommended)
+1. Go to: https://github.com/chalkyjason/UniteRev/releases/new
+2. Create new release (tag: v1.0.0)
+3. Upload .dmg, .exe, .AppImage files
+4. Add installation instructions (see below)
+5. Publish!
+
+OPTION B: Direct Sharing
+1. Upload files to Dropbox/Google Drive/WeTransfer
+2. Share download link
+3. Include installation instructions
+
+
+👥 STEP 4: USER INSTALLATION INSTRUCTIONS
+------------------------------------------
+
+Copy this for your users:
+
+====================
+MAC USERS:
+1. Download the .dmg file
+2. Open it and drag app to Applications
+3. ⚠️ FIRST TIME ONLY:
+   - Right-click app → "Open"
+   - Click "Open" in security dialog
+4. After first time, just double-click!
+
+WINDOWS USERS:
+1. Download the .exe file
+2. Double-click to run
+3. If SmartScreen warning appears:
+   - Click "More info"
+   - Click "Run anyway"
+4. App installs automatically!
+
+LINUX USERS:
+1. Download the .AppImage file
+2. Make it executable:
+   chmod +x AntifaTimes-Stream-Manager-1.0.0.AppImage
+3. Double-click or run:
+   ./AntifaTimes-Stream-Manager-1.0.0.AppImage
+====================
+
+
+⚠️  SECURITY WARNINGS - WHY?
+----------------------------
+
+These apps are UNSIGNED, which means:
+❌ Not signed with Apple Developer certificate ($99/year)
+❌ Not signed with Windows code signing cert ($200-400/year)
+
+This causes security warnings on first run.
+The app is safe - just not signed!
+
+To remove warnings (optional):
+📖 See BUILD_GUIDE.md → "Code Signing" section
+
+
+🏗️  BUILD FOR ALL PLATFORMS
+-----------------------------
+
+To build Mac + Windows + Linux all at once:
+
+    cd desktop-app
+    npm install
+    npm run build:all
+
+Note:
+- On Mac, can build Mac + Linux (not Windows)
+- On Windows, can only build Windows
+- On Linux, can build Linux (not Mac/Windows)
+
+For cross-platform builds, use:
+- macOS with Wine (for Windows)
+- GitHub Actions (automated builds)
+
+
+🐛 TROUBLESHOOTING
+------------------
+
+"npm install fails":
+    npm cache clean --force
+    npm install --verbose
+
+"Build fails on Mac":
+    xcode-select --install
+
+"Build fails on Windows":
+    npm install --global windows-build-tools
+
+"Electron download stuck":
+    - Check internet connection
+    - Try different network (mobile hotspot)
+    - Wait and retry
+
+
+📚 MORE INFO
+------------
+
+BUILD_GUIDE.md - Comprehensive build documentation
+README.md - App features and usage
+package.json - Build configuration
+
+
+🆘 NEED HELP?
+-------------
+
+GitHub Issues:
+https://github.com/chalkyjason/UniteRev/issues
+
+
+============================================
+           LET'S BUILD! 🚀
+============================================

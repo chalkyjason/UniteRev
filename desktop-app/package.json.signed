@@ -1,0 +1,87 @@
+{
+  "name": "antifatimes-stream-manager",
+  "productName": "AntifaTimes Stream Manager",
+  "version": "1.0.0",
+  "description": "Multi-stream viewer for protests and activism",
+  "main": "main.js",
+  "author": "AntifaTimes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chalkyjason/UniteRev.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
+    "release": "electron-builder --publish always"
+  },
+  "build": {
+    "appId": "com.antifatimes.streammanager",
+    "productName": "AntifaTimes Stream Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*",
+      "icon.*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "icon.svg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist"
+    },
+    "win": {
+      "icon": "icon.svg",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "icon.svg",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "chalkyjason",
+      "repo": "UniteRev"
+    },
+    "afterSign": "scripts/notarize.js"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "electron-notarize": "^1.2.2"
+  }
+}
