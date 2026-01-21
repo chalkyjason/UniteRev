@@ -445,6 +445,159 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        /* Panel Toggle Sidebar */
+        .panel-toggle-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+            overflow-y: auto;
+        }
+
+        .panel-toggle-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-toggle-btn {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 12px 8px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(102, 126, 234, 0.9);
+            padding-left: 12px;
+        }
+
+        .panel-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .panel-toggle-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .panel-toggle-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .panel-toggle-item label {
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Panel Resize Handles */
+        .panel-resize-handle {
+            position: absolute;
+            z-index: 10;
+        }
+
+        .panel-resize-handle.n {
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 5px;
+            cursor: ns-resize;
+        }
+
+        .panel-resize-handle.s {
+            bottom: 0;
+            left: 10px;
+            right: 10px;
+            height: 5px;
+            cursor: ns-resize;
+        }
+
+        .panel-resize-handle.e {
+            right: 0;
+            top: 10px;
+            bottom: 10px;
+            width: 5px;
+            cursor: ew-resize;
+        }
+
+        .panel-resize-handle.w {
+            left: 0;
+            top: 10px;
+            bottom: 10px;
+            width: 5px;
+            cursor: ew-resize;
+        }
+
+        .panel-resize-handle.ne {
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            cursor: nesw-resize;
+        }
+
+        .panel-resize-handle.nw {
+            top: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            cursor: nwse-resize;
+        }
+
+        .panel-resize-handle.se {
+            bottom: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            cursor: nwse-resize;
+        }
+
+        .panel-resize-handle.sw {
+            bottom: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            cursor: nesw-resize;
+        }
+
+        .floating-panel.resizing {
+            opacity: 0.9;
+        }
+
         /* Unified Chat Panel */
         .chat-panel {
             /* Will be converted to floating panel */
@@ -712,6 +865,13 @@
 <body>
     <input type="file" id="logoUploadInput" accept="image/*" style="display: none;">
 
+    <!-- Panel Toggle Sidebar -->
+    <button class="sidebar-toggle-btn" onclick="panelManager.toggleSidebar()">☰</button>
+    <div class="panel-toggle-sidebar" id="panelSidebar">
+        <div class="sidebar-header">📋 Panel Manager</div>
+        <div id="panelToggleList"></div>
+    </div>
+
     <div class="main-container">
         <!-- Logo Header Panel -->
         <div class="floating-panel" id="logoPanel" style="left: 20px; top: 20px; width: 300px;">
@@ -907,8 +1067,21 @@
         // Panel Manager - handles dragging, minimizing, customization
         const panelManager = {
             draggingPanel: null,
+            resizingPanel: null,
+            resizeDirection: null,
             offset: { x: 0, y: 0 },
             highestZ: 100,
+            sidebarOpen: false,
+            panels: [
+                { id: 'logoPanel', name: '🚩 Logo & Status', visible: true },
+                { id: 'customizePanel', name: '🎨 Customize', visible: true },
+                { id: 'addStreamPanel', name: '➕ Add Stream', visible: true },
+                { id: 'gridPanel', name: '📐 Grid Layout', visible: true },
+                { id: 'streamersPanel', name: '💾 Saved Streamers', visible: true },
+                { id: 'audioPanel', name: '🔊 Audio Control', visible: true },
+                { id: 'actionsPanel', name: '⚡ Quick Actions', visible: true },
+                { id: 'chatPanel', name: '💬 Unified Chat', visible: true }
+            ],
             customization: {
                 bgTheme: 'default',
                 panelColor: 'default',
@@ -917,14 +1090,27 @@
 
             init() {
                 this.loadCustomization();
+                this.loadPanelVisibility();
                 this.initPanelDragging();
+                this.initPanelResizing();
                 this.initLogoUpload();
                 this.renderColorOptions();
+                this.renderPanelToggles();
                 this.applyCustomization();
+                this.updatePanelVisibility();
 
                 // Make panels clickable to bring to front
                 document.querySelectorAll('.floating-panel').forEach(panel => {
                     panel.addEventListener('mousedown', () => this.bringToFront(panel));
+                });
+
+                // Close sidebar when clicking outside
+                document.addEventListener('click', (e) => {
+                    const sidebar = document.getElementById('panelSidebar');
+                    const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+                    if (this.sidebarOpen && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        this.toggleSidebar();
+                    }
                 });
             },
 
@@ -1102,6 +1288,14 @@
                         if (pos.top !== undefined) panel.style.top = pos.top;
                         if (pos.right !== undefined) panel.style.right = pos.right;
                         if (pos.bottom !== undefined) panel.style.bottom = pos.bottom;
+                        if (pos.width !== undefined) {
+                            panel.style.width = pos.width;
+                            panel.style.maxWidth = 'none';
+                        }
+                        if (pos.height !== undefined) {
+                            panel.style.height = pos.height;
+                            panel.style.maxHeight = 'none';
+                        }
                         if (pos.minimized) {
                             panel.classList.add('minimized');
                             const btn = panel.querySelector('.panel-controls .panel-btn');
@@ -1146,10 +1340,163 @@
                         top: panel.style.top,
                         right: panel.style.right,
                         bottom: panel.style.bottom,
+                        width: panel.style.width,
+                        height: panel.style.height,
                         minimized: panel.classList.contains('minimized')
                     };
                 });
                 localStorage.setItem('panel_positions', JSON.stringify(positions));
+            },
+
+            // Sidebar toggle
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                const sidebar = document.getElementById('panelSidebar');
+                sidebar.classList.toggle('open', this.sidebarOpen);
+            },
+
+            // Render panel toggle list
+            renderPanelToggles() {
+                const container = document.getElementById('panelToggleList');
+                container.innerHTML = this.panels.map(panel => `
+                    <div class="panel-toggle-item">
+                        <input type="checkbox" id="toggle_${panel.id}"
+                               ${panel.visible ? 'checked' : ''}
+                               onchange="panelManager.togglePanel('${panel.id}')">
+                        <label for="toggle_${panel.id}">${panel.name}</label>
+                    </div>
+                `).join('');
+            },
+
+            // Toggle panel visibility
+            togglePanel(panelId) {
+                const panelConfig = this.panels.find(p => p.id === panelId);
+                if (panelConfig) {
+                    panelConfig.visible = !panelConfig.visible;
+                    this.updatePanelVisibility();
+                    this.savePanelVisibility();
+                }
+            },
+
+            // Update panel visibility
+            updatePanelVisibility() {
+                this.panels.forEach(panelConfig => {
+                    const panel = document.getElementById(panelConfig.id);
+                    if (panel) {
+                        panel.style.display = panelConfig.visible ? 'flex' : 'none';
+                    }
+                });
+            },
+
+            // Save panel visibility
+            savePanelVisibility() {
+                const visibility = {};
+                this.panels.forEach(p => {
+                    visibility[p.id] = p.visible;
+                });
+                localStorage.setItem('panel_visibility', JSON.stringify(visibility));
+            },
+
+            // Load panel visibility
+            loadPanelVisibility() {
+                const saved = localStorage.getItem('panel_visibility');
+                if (saved) {
+                    const visibility = JSON.parse(saved);
+                    this.panels.forEach(p => {
+                        if (visibility.hasOwnProperty(p.id)) {
+                            p.visible = visibility[p.id];
+                        }
+                    });
+                }
+            },
+
+            // Initialize panel resizing
+            initPanelResizing() {
+                // Add resize handles to all panels
+                document.querySelectorAll('.floating-panel').forEach(panel => {
+                    const directions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+                    directions.forEach(dir => {
+                        const handle = document.createElement('div');
+                        handle.className = `panel-resize-handle ${dir}`;
+                        handle.dataset.direction = dir;
+                        handle.addEventListener('mousedown', (e) => this.startResize(e, panel, dir));
+                        panel.appendChild(handle);
+                    });
+                });
+
+                document.addEventListener('mousemove', (e) => this.resize(e));
+                document.addEventListener('mouseup', () => this.stopResize());
+            },
+
+            startResize(e, panel, direction) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                this.resizingPanel = panel;
+                this.resizeDirection = direction;
+                this.bringToFront(panel);
+
+                this.resizeStart = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    width: panel.offsetWidth,
+                    height: panel.offsetHeight,
+                    left: panel.offsetLeft,
+                    top: panel.offsetTop
+                };
+
+                panel.classList.add('resizing');
+            },
+
+            resize(e) {
+                if (!this.resizingPanel || !this.resizeDirection) return;
+
+                const deltaX = e.clientX - this.resizeStart.x;
+                const deltaY = e.clientY - this.resizeStart.y;
+
+                let newWidth = this.resizeStart.width;
+                let newHeight = this.resizeStart.height;
+                let newLeft = this.resizeStart.left;
+                let newTop = this.resizeStart.top;
+
+                const dir = this.resizeDirection;
+
+                // Calculate new dimensions based on direction
+                if (dir.includes('e')) {
+                    newWidth = Math.max(300, this.resizeStart.width + deltaX);
+                }
+                if (dir.includes('w')) {
+                    newWidth = Math.max(300, this.resizeStart.width - deltaX);
+                    if (newWidth > 300) {
+                        newLeft = this.resizeStart.left + deltaX;
+                    }
+                }
+                if (dir.includes('s')) {
+                    newHeight = Math.max(200, this.resizeStart.height + deltaY);
+                }
+                if (dir.includes('n')) {
+                    newHeight = Math.max(200, this.resizeStart.height - deltaY);
+                    if (newHeight > 200) {
+                        newTop = this.resizeStart.top + deltaY;
+                    }
+                }
+
+                // Apply new dimensions
+                this.resizingPanel.style.width = newWidth + 'px';
+                this.resizingPanel.style.height = newHeight + 'px';
+                this.resizingPanel.style.left = newLeft + 'px';
+                this.resizingPanel.style.top = newTop + 'px';
+                this.resizingPanel.style.maxWidth = 'none';
+                this.resizingPanel.style.maxHeight = 'none';
+            },
+
+            stopResize() {
+                if (this.resizingPanel) {
+                    this.resizingPanel.classList.remove('resizing');
+                    this.savePanelPositions();
+                    this.resizingPanel = null;
+                    this.resizeDirection = null;
+                }
             }
         };
 
