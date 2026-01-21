@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Overlay - AntifaTimes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1920px;
+            height: 1080px;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+
+        .alert-container {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 1200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .alert {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Animations */
+        @keyframes fade {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+
+        @keyframes slide {
+            0% { transform: translate(-50%, -100%); opacity: 0; }
+            10%, 90% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, 100%); opacity: 0; }
+        }
+
+        @keyframes bounce {
+            0% { transform: translate(-50%, -200%); opacity: 0; }
+            10% { transform: translate(-50%, 20px); opacity: 1; }
+            15% { transform: translate(-50%, 0); }
+            90% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, -200%); opacity: 0; }
+        }
+
+        @keyframes zoom {
+            0%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            10%, 90% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .alert.fade {
+            animation: fade var(--duration) ease-in-out;
+        }
+
+        .alert.slide {
+            animation: slide var(--duration) ease-in-out;
+        }
+
+        .alert.bounce {
+            animation: bounce var(--duration) ease-in-out;
+        }
+
+        .alert.zoom {
+            animation: zoom var(--duration) ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-container" id="alertContainer">
+        <div class="alert" id="alertBox"></div>
+    </div>
+
+    <audio id="alertSound"></audio>
+
+    <script>
+        class OverlayManager {
+            constructor() {
+                this.container = document.getElementById('alertContainer');
+                this.alertBox = document.getElementById('alertBox');
+                this.sound = document.getElementById('alertSound');
+                this.config = this.loadConfig();
+                this.setupEventListener();
+            }
+
+            loadConfig() {
+                const saved = localStorage.getItem('alert_config');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+                return {
+                    type: 'follow',
+                    text: '{username} just followed!',
+                    duration: 5,
+                    color: '#ffffff',
+                    animation: 'fade',
+                    soundUrl: null
+                };
+            }
+
+            setupEventListener() {
+                // Listen for storage events from control panel
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'alert_config') {
+                        this.config = this.loadConfig();
+                    } else if (e.key === 'trigger_alert') {
+                        const alertData = JSON.parse(e.newValue);
+                        this.showAlert(alertData);
+                    }
+                });
+
+                // For testing: trigger alert every 30 seconds in test mode
+                if (window.location.search.includes('test=true')) {
+                    setInterval(() => {
+                        this.showAlert({
+                            username: 'TestUser' + Math.floor(Math.random() * 1000),
+                            amount: '$' + (Math.random() * 100).toFixed(2),
+                            message: 'This is a test alert!'
+                        });
+                    }, 30000);
+                }
+            }
+
+            showAlert(data) {
+                // Reload config in case it changed
+                this.config = this.loadConfig();
+
+                // Format alert text with data
+                let alertText = this.config.text;
+                if (data.username) alertText = alertText.replace('{username}', data.username);
+                if (data.amount) alertText = alertText.replace('{amount}', data.amount);
+                if (data.message) alertText = alertText.replace('{message}', data.message);
+
+                // Style and display alert
+                this.alertBox.textContent = alertText;
+                this.alertBox.style.color = this.config.color;
+                this.alertBox.style.setProperty('--duration', this.config.duration + 's');
+                this.alertBox.className = 'alert ' + this.config.animation;
+                this.container.style.display = 'block';
+
+                // Play sound if configured
+                if (this.config.soundUrl) {
+                    this.sound.src = this.config.soundUrl;
+                    this.sound.play().catch(err => console.log('Sound play failed:', err));
+                }
+
+                // Hide after duration
+                setTimeout(() => {
+                    this.container.style.display = 'none';
+                }, this.config.duration * 1000);
+            }
+        }
+
+        // Initialize overlay
+        const overlay = new OverlayManager();
+
+        // For testing: listen for manual triggers
+        window.triggerTestAlert = () => {
+            overlay.showAlert({
+                username: 'TestUser123',
+                amount: '$5.00',
+                message: 'Great stream!'
+            });
+        };
+    </script>
+</body>
+</html>
