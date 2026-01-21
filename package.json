@@ -1,0 +1,19 @@
+{
+  "name": "uniterev",
+  "version": "1.0.0",
+  "description": "UniteRev - Multi-stream viewer and activism platform",
+  "private": true,
+  "scripts": {
+    "build:all": "cd desktop-app && npm run build:all",
+    "build:desktop": "cd desktop-app && npm run build",
+    "build:mac": "cd desktop-app && npm run build:mac",
+    "build:win": "cd desktop-app && npm run build:win",
+    "build:linux": "cd desktop-app && npm run build:linux"
+  },
+  "workspaces": [
+    "desktop-app",
+    "backend"
+  ],
+  "author": "UniteRev",
+  "license": "MIT"
+}

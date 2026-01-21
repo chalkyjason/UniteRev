@@ -25,7 +25,13 @@ function createWindow() {
     });
 
     // Load the app
-    mainWindow.loadFile(path.join(__dirname, 'app', 'index.html'));
+    const indexPath = path.join(__dirname, 'app', 'index.html');
+    mainWindow.loadFile(indexPath).catch(err => {
+        console.error('Failed to load index.html:', err);
+    });
+
+    // Open DevTools for debugging in development
+    mainWindow.webContents.openDevTools();
 
     // Set up permission handlers for webviews
     const session = mainWindow.webContents.session;
