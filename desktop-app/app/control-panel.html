@@ -897,7 +897,7 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.1);">
+                <div id="scannerButtonContainer" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); display: none;">
                     <button class="btn btn-primary" onclick="window.open('scanner.html', 'StreamScanner', 'width=1400,height=900')" style="width: 100%;">
                         🔍 Open Stream Scanner
                     </button>
@@ -1180,6 +1180,9 @@
 
     <!-- Twitch IRC Library -->
     <script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js"></script>
+
+    <!-- Scanner Configuration -->
+    <script src="scanner-config.js"></script>
 
     <script>
         // Panel Manager - handles dragging, minimizing, customization
@@ -2560,6 +2563,14 @@
             panelManager.init();
             controlPanel.init();
             chatManager.init();
+
+            // Show/hide scanner button based on config
+            if (window.ScannerConfig && window.ScannerConfig.ENABLED && window.ScannerConfig.SHOW_IN_CONTROL_PANEL) {
+                const scannerBtn = document.getElementById('scannerButtonContainer');
+                if (scannerBtn) {
+                    scannerBtn.style.display = 'block';
+                }
+            }
             overlayManager.init();
         });
     </script>

@@ -47,6 +47,13 @@ class StreamScanner {
             if (e.key === 'Enter') {
                 const keyword = keywordInput.value.trim();
                 if (keyword && !this.keywords.includes(keyword)) {
+                    // Check keyword limit from config
+                    const maxKeywords = window.ScannerConfig ? window.ScannerConfig.MAX_KEYWORDS : 50;
+                    if (this.keywords.length >= maxKeywords) {
+                        alert(`Maximum ${maxKeywords} keywords allowed. Remove some before adding more.`);
+                        return;
+                    }
+
                     this.keywords.push(keyword);
                     this.renderKeywordTags();
                     this.saveSettings();

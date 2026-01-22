@@ -55,12 +55,14 @@
 ✅ Everything stored in browser
 ✅ No installation required
 ✅ Multi-monitor control panel
+✅ **NEW: Stream Scanner** - Find live streams by keywords across platforms
 
 **Perfect for:**
 - Quick stream monitoring
 - OBS users
 - Anyone who wants simplicity
 - Streamers managing multiple feeds
+- Discovering new streams by topic or keyword
 - No technical knowledge needed
 
 📂 **Location**: `standalone/` folder
@@ -106,6 +108,46 @@ Double-click: standalone/index.html
 - Click another to switch
 
 **Your settings auto-save in the browser!**
+
+---
+
+## 🔍 Stream Scanner (NEW!)
+
+**Discover live streams by keywords and trending topics**
+
+### What is it?
+The Stream Scanner helps you find live streams across multiple platforms based on keywords you're interested in. Perfect for finding new content, monitoring topics, or discovering streamers.
+
+### How to Use:
+1. Open the **Control Panel**
+2. Click **"🔍 Open Stream Scanner"** button
+3. Add keywords (e.g., "protest", "gaming", "music")
+4. Configure scan interval and minimum viewers
+5. Click **"🚀 Start Scanning"**
+6. Watch live streams appear automatically!
+
+### Supported Platforms:
+- **🟣 Twitch** - Live gaming and IRL streams
+- **🔴 YouTube** - YouTube Live broadcasts (OAuth or API key)
+- **🟢 Kick** - Alternative streaming platform
+- **⚫ TikTok** - TikTok Live streams
+
+### Features:
+✅ **Multi-keyword scanning** - Add unlimited keywords
+✅ **Auto-refresh** - Configurable scan intervals (30s to 30min)
+✅ **Filter by viewers** - Set minimum viewer count
+✅ **Enable/disable platforms** - Choose which platforms to scan
+✅ **Live status badges** - See which streams are currently live
+✅ **One-click watch** - Open streams directly in new tab
+
+### YouTube Authentication (Optional):
+For real YouTube data instead of demo data:
+1. Get a Google OAuth Client ID or API Key
+2. Click **⚙️ Configure** on YouTube plugin
+3. Sign in with Google or enter API key
+4. Scan for real live streams!
+
+**No installation required - works instantly!**
 
 ---
 
