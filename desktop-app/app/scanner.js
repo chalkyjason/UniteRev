@@ -106,13 +106,24 @@ class StreamScanner {
             if (plugin.scanning) item.classList.add('scanning');
 
             const statusClass = plugin.scanning ? 'scanning' : (plugin.active ? 'active' : 'inactive');
-            const statusText = plugin.scanning ? 'Scanning...' : (plugin.active ? 'Active' : 'Inactive');
+            let statusText = plugin.scanning ? 'Scanning...' : (plugin.active ? 'Active' : 'Inactive');
+
+            // Show auth status for YouTube
+            let authIndicator = '';
+            if (plugin.platform === 'youtube') {
+                if (plugin.isAuthenticated) {
+                    authIndicator = '<div style="font-size: 11px; color: #10B981; margin-top: 4px;">✓ Signed in to YouTube</div>';
+                } else {
+                    authIndicator = '<div style="font-size: 11px; color: #F59E0B; margin-top: 4px;">⚠ Not signed in (using demo data)</div>';
+                }
+            }
 
             item.innerHTML = `
                 <div class="plugin-header">
                     <div class="plugin-info">
                         <div class="plugin-name">${plugin.icon} ${plugin.name}</div>
                         <div class="plugin-desc">${plugin.results.length} streams found</div>
+                        ${authIndicator}
                     </div>
                     <span class="plugin-status ${statusClass}">${statusText}</span>
                 </div>
@@ -121,7 +132,7 @@ class StreamScanner {
                         ${plugin.active ? 'Disable' : 'Enable'}
                     </button>
                     <button class="btn btn-secondary" onclick="scanner.configurePlugin('${plugin.platform}')">
-                        ⚙️ Configure
+                        ${plugin.platform === 'youtube' && plugin.isAuthenticated ? '✓ Signed In' : '⚙️ Configure'}
                     </button>
                 </div>
             `;
@@ -142,49 +153,238 @@ class StreamScanner {
         const plugin = this.pluginManager.getPlugin(platform);
         if (!plugin) return;
 
-        let configHtml = `
-            <h3>Configure ${plugin.name}</h3>
-            <p>API configuration coming soon...</p>
-        `;
+        if (platform === 'youtube') {
+            this.showYouTubeConfig(plugin);
+        } else if (platform === 'twitch') {
+            this.showTwitchConfig(plugin);
+        } else {
+            alert(`Configuration for ${plugin.name} coming soon!`);
+        }
+    }
 
-        if (platform === 'twitch') {
-            configHtml = `
-                <h3>Configure Twitch Scanner</h3>
+    showYouTubeConfig(plugin) {
+        const modal = this.createModal();
+
+        if (plugin.isAuthenticated) {
+            // Already signed in - show account info and sign out option
+            modal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h3>🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #D1FAE5; border: 2px solid #10B981; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="color: #065F46; font-weight: 600; margin-bottom: 8px;">✓ Signed In to YouTube</div>
+                        <div style="color: #047857; font-size: 14px;">You're using authenticated YouTube API access with higher rate limits.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Additional API Key (Optional)</label>
+                        <input type="text" class="form-input" id="youtubeApiKey"
+                               placeholder="Backup API Key"
+                               value="${plugin.apiKey || ''}">
+                        <div class="form-help">Optional: Add an API key as backup. Get from: <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button class="btn btn-secondary" onclick="scanner.youtubeSignOut()" style="flex: 1;">
+                            Sign Out
+                        </button>
+                        <button class="btn btn-primary" onclick="scanner.saveYouTubeConfig()" style="flex: 1;">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Not signed in - show sign-in options
+            modal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h3>🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="color: #92400E; font-weight: 600; margin-bottom: 8px;">⚠ Not Authenticated</div>
+                        <div style="color: #B45309; font-size: 14px;">Sign in with Google for real YouTube data and higher rate limits.</div>
+                    </div>
+
+                    <div style="background: #F8FAFC; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="font-weight: 600; margin-bottom: 12px;">Option 1: OAuth Sign-In (Recommended)</div>
+                        <div style="font-size: 14px; color: #64748B; margin-bottom: 12px;">
+                            Sign in with your Google account for seamless access to YouTube Live streams.
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Google OAuth Client ID</label>
+                            <input type="text" class="form-input" id="youtubeClientId"
+                                   placeholder="Your Client ID from Google Cloud Console"
+                                   value="${plugin.clientId || ''}">
+                            <div class="form-help">
+                                <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Get Client ID from Google Cloud Console</a>
+                                <br>Enable YouTube Data API v3 and create OAuth 2.0 Client ID
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="scanner.youtubeSignIn()" style="width: 100%;">
+                            🔐 Sign In with Google
+                        </button>
+                    </div>
+
+                    <div style="background: #F8FAFC; border-radius: 8px; padding: 16px;">
+                        <div style="font-weight: 600; margin-bottom: 12px;">Option 2: API Key (Basic)</div>
+                        <div style="font-size: 14px; color: #64748B; margin-bottom: 12px;">
+                            Use a simple API key for basic access (lower rate limits).
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">YouTube API Key</label>
+                            <input type="text" class="form-input" id="youtubeApiKey"
+                                   placeholder="Your YouTube Data API v3 Key"
+                                   value="${plugin.apiKey || ''}">
+                            <div class="form-help">
+                                <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Get API Key from Google Cloud Console</a>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="scanner.saveYouTubeConfig()" style="width: 100%;">
+                            Save API Key
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    showTwitchConfig(plugin) {
+        const modal = this.createModal();
+        modal.querySelector('.modal-content').innerHTML = `
+            <div class="modal-header">
+                <h3>🟣 Twitch Configuration</h3>
+                <button class="modal-close" onclick="scanner.closeModal()">×</button>
+            </div>
+            <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label">Client ID</label>
                     <input type="text" class="form-input" id="twitchClientId"
                            placeholder="Your Twitch Client ID"
                            value="${plugin.clientId || ''}">
-                    <div class="form-help">Get from: https://dev.twitch.tv/console</div>
+                    <div class="form-help">Get from: <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Access Token</label>
-                    <input type="password" class="form-input" id="twitchAccessToken"
-                           placeholder="Your Access Token"
-                           value="${plugin.accessToken || ''}">
+                    <label class="form-label">Client Secret</label>
+                    <input type="password" class="form-input" id="twitchClientSecret"
+                           placeholder="Your Client Secret">
+                    <div class="form-help">Used to generate access tokens</div>
                 </div>
-                <button class="btn btn-primary" onclick="scanner.savePluginConfig('twitch')">
+                <button class="btn btn-primary" onclick="scanner.saveTwitchConfig()" style="width: 100%;">
                     Save Configuration
                 </button>
-            `;
-        } else if (platform === 'youtube') {
-            configHtml = `
-                <h3>Configure YouTube Scanner</h3>
-                <div class="form-group">
-                    <label class="form-label">API Key</label>
-                    <input type="text" class="form-input" id="youtubeApiKey"
-                           placeholder="Your YouTube API Key"
-                           value="${plugin.apiKey || ''}">
-                    <div class="form-help">Get from: https://console.cloud.google.com/</div>
-                </div>
-                <button class="btn btn-primary" onclick="scanner.savePluginConfig('youtube')">
-                    Save Configuration
-                </button>
-            `;
+            </div>
+        `;
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    createModal() {
+        const overlay = document.createElement('div');
+        overlay.className = 'config-modal';
+        overlay.id = 'configModal';
+
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+
+        overlay.appendChild(modalContent);
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeModal();
+            }
+        });
+
+        return overlay;
+    }
+
+    closeModal() {
+        const modal = document.getElementById('configModal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+
+    async youtubeSignIn() {
+        const clientId = document.getElementById('youtubeClientId')?.value.trim();
+        if (!clientId) {
+            alert('Please enter your Google OAuth Client ID first.');
+            return;
         }
 
-        // Show in modal or alert (basic implementation)
-        const modal = confirm(`${plugin.name} configuration requires a modal dialog. API keys needed for live data. Currently using demo data.`);
+        const plugin = this.pluginManager.getPlugin('youtube');
+        if (!plugin) return;
+
+        try {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Opening sign-in...';
+
+            await plugin.signIn(clientId);
+
+            this.closeModal();
+            this.renderPluginList();
+            alert('Successfully signed in to YouTube!');
+        } catch (error) {
+            alert('Sign-in failed: ' + error.message);
+            const btn = event.target;
+            btn.disabled = false;
+            btn.textContent = '🔐 Sign In with Google';
+        }
+    }
+
+    youtubeSignOut() {
+        if (!confirm('Are you sure you want to sign out of YouTube?')) {
+            return;
+        }
+
+        const plugin = this.pluginManager.getPlugin('youtube');
+        if (plugin) {
+            plugin.signOut();
+            this.closeModal();
+            this.renderPluginList();
+        }
+    }
+
+    saveYouTubeConfig() {
+        const plugin = this.pluginManager.getPlugin('youtube');
+        if (!plugin) return;
+
+        const apiKey = document.getElementById('youtubeApiKey')?.value.trim();
+        if (apiKey) {
+            plugin.apiKey = apiKey;
+            plugin.saveCredentials();
+        }
+
+        this.closeModal();
+        alert('YouTube configuration saved!');
+    }
+
+    saveTwitchConfig() {
+        const plugin = this.pluginManager.getPlugin('twitch');
+        if (!plugin) return;
+
+        plugin.clientId = document.getElementById('twitchClientId')?.value.trim();
+        const clientSecret = document.getElementById('twitchClientSecret')?.value.trim();
+
+        // Save to localStorage
+        const configs = JSON.parse(localStorage.getItem('plugin_configs') || '{}');
+        configs.twitch = {
+            clientId: plugin.clientId,
+            clientSecret: clientSecret
+        };
+        localStorage.setItem('plugin_configs', JSON.stringify(configs));
+
+        this.closeModal();
+        alert('Twitch configuration saved!');
     }
 
     savePluginConfig(platform) {

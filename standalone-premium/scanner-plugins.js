@@ -130,6 +130,168 @@ class YouTubePlugin extends ScannerPlugin {
         super('YouTube Live Scanner', 'youtube', '🔴');
         this.apiBase = 'https://www.googleapis.com/youtube/v3';
         this.apiKey = null; // Users will need to provide their own
+        this.clientId = null;
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+
+        // Load saved credentials
+        this.loadCredentials();
+    }
+
+    loadCredentials() {
+        const saved = localStorage.getItem('youtube_auth');
+        if (saved) {
+            try {
+                const auth = JSON.parse(saved);
+                this.clientId = auth.clientId;
+                this.accessToken = auth.accessToken;
+                this.refreshToken = auth.refreshToken;
+                this.tokenExpiry = auth.tokenExpiry;
+                this.apiKey = auth.apiKey;
+
+                // Check if token is still valid
+                if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+                    this.isAuthenticated = true;
+                }
+            } catch (error) {
+                console.error('Error loading YouTube credentials:', error);
+            }
+        }
+    }
+
+    saveCredentials() {
+        const auth = {
+            clientId: this.clientId,
+            accessToken: this.accessToken,
+            refreshToken: this.refreshToken,
+            tokenExpiry: this.tokenExpiry,
+            apiKey: this.apiKey
+        };
+        localStorage.setItem('youtube_auth', JSON.stringify(auth));
+    }
+
+    async signIn(clientId, clientSecret = null) {
+        this.clientId = clientId;
+
+        // OAuth 2.0 flow
+        const redirectUri = window.location.origin + window.location.pathname;
+        const scope = 'https://www.googleapis.com/auth/youtube.readonly';
+
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${encodeURIComponent(clientId)}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=token` +
+            `&scope=${encodeURIComponent(scope)}` +
+            `&state=youtube_auth`;
+
+        // Open OAuth popup
+        const width = 500;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        const popup = window.open(
+            authUrl,
+            'YouTube Sign In',
+            `width=${width},height=${height},left=${left},top=${top}`
+        );
+
+        // Listen for OAuth callback
+        return new Promise((resolve, reject) => {
+            const checkPopup = setInterval(() => {
+                try {
+                    if (popup.closed) {
+                        clearInterval(checkPopup);
+                        reject(new Error('Sign-in popup was closed'));
+                        return;
+                    }
+
+                    // Check if we got redirected back with token
+                    const popupUrl = popup.location.href;
+                    if (popupUrl.includes('access_token=')) {
+                        clearInterval(checkPopup);
+                        popup.close();
+
+                        // Parse token from URL
+                        const params = new URLSearchParams(popupUrl.split('#')[1]);
+                        this.accessToken = params.get('access_token');
+                        const expiresIn = parseInt(params.get('expires_in')) || 3600;
+                        this.tokenExpiry = Date.now() + (expiresIn * 1000);
+                        this.isAuthenticated = true;
+
+                        this.saveCredentials();
+                        resolve(true);
+                    }
+                } catch (error) {
+                    // Cross-origin error - popup hasn't redirected back yet
+                }
+            }, 500);
+
+            // Timeout after 5 minutes
+            setTimeout(() => {
+                clearInterval(checkPopup);
+                if (!popup.closed) popup.close();
+                reject(new Error('Sign-in timeout'));
+            }, 300000);
+        });
+    }
+
+    async refreshAccessToken() {
+        if (!this.refreshToken || !this.clientId) {
+            return false;
+        }
+
+        try {
+            const response = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    client_id: this.clientId,
+                    refresh_token: this.refreshToken,
+                    grant_type: 'refresh_token'
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.accessToken = data.access_token;
+                const expiresIn = data.expires_in || 3600;
+                this.tokenExpiry = Date.now() + (expiresIn * 1000);
+                this.isAuthenticated = true;
+                this.saveCredentials();
+                return true;
+            }
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+        }
+
+        return false;
+    }
+
+    signOut() {
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+        localStorage.removeItem('youtube_auth');
+    }
+
+    async ensureValidToken() {
+        // Check if token needs refresh
+        if (this.tokenExpiry && Date.now() > this.tokenExpiry - 60000) {
+            // Token expired or expiring soon
+            if (this.refreshToken) {
+                await this.refreshAccessToken();
+            } else {
+                this.isAuthenticated = false;
+                return false;
+            }
+        }
+        return this.isAuthenticated;
     }
 
     async scan(keywords, minViewers = 0) {
@@ -137,46 +299,78 @@ class YouTubePlugin extends ScannerPlugin {
         const results = [];
 
         try {
-            // For demo/testing without API key, return mock data
-            if (!this.apiKey) {
+            // Check if we have valid authentication
+            const hasValidToken = await this.ensureValidToken();
+
+            // For demo/testing without credentials, return mock data
+            if (!hasValidToken && !this.apiKey) {
                 return this.getMockData(keywords, minViewers);
+            }
+
+            // Prepare request headers
+            const headers = {};
+            let authParam = '';
+
+            if (hasValidToken) {
+                // Use OAuth token (preferred)
+                headers['Authorization'] = `Bearer ${this.accessToken}`;
+            } else if (this.apiKey) {
+                // Fall back to API key
+                authParam = `&key=${this.apiKey}`;
             }
 
             // Real API implementation
             for (const keyword of keywords) {
-                const response = await fetch(
-                    `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&key=${this.apiKey}`
-                );
+                const searchUrl = hasValidToken
+                    ? `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25`
+                    : `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25${authParam}`;
+
+                const response = await fetch(searchUrl, { headers });
 
                 if (response.ok) {
                     const data = await response.json();
 
-                    for (const video of data.items) {
-                        const videoId = video.id.videoId;
-                        const detailsResponse = await fetch(
-                            `${this.apiBase}/videos?part=liveStreamingDetails,statistics&id=${videoId}&key=${this.apiKey}`
-                        );
+                    if (!data.items || data.items.length === 0) continue;
 
-                        if (detailsResponse.ok) {
-                            const details = await detailsResponse.json();
-                            const item = details.items[0];
+                    // Batch video IDs for details request
+                    const videoIds = data.items.map(video => video.id.videoId).join(',');
+
+                    const detailsUrl = hasValidToken
+                        ? `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}`
+                        : `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}${authParam}`;
+
+                    const detailsResponse = await fetch(detailsUrl, { headers });
+
+                    if (detailsResponse.ok) {
+                        const details = await detailsResponse.json();
+
+                        for (const item of details.items) {
                             const viewers = parseInt(item.liveStreamingDetails?.concurrentViewers) || 0;
 
-                            if (viewers >= minViewers) {
+                            if (viewers >= minViewers && item.snippet.liveBroadcastContent === 'live') {
                                 results.push({
                                     platform: 'youtube',
                                     platformIcon: '🔴',
-                                    username: video.snippet.channelTitle,
-                                    displayName: video.snippet.channelTitle,
-                                    title: video.snippet.title,
+                                    username: item.snippet.channelTitle,
+                                    displayName: item.snippet.channelTitle,
+                                    title: item.snippet.title,
                                     viewers: viewers,
-                                    url: `https://youtube.com/watch?v=${videoId}`,
-                                    thumbnailUrl: video.snippet.thumbnails.medium.url,
+                                    url: `https://youtube.com/watch?v=${item.id}`,
+                                    thumbnailUrl: item.snippet.thumbnails.medium?.url,
                                     isLive: true,
                                     keyword: keyword
                                 });
                             }
                         }
+                    }
+                } else if (response.status === 401) {
+                    // Token expired, try to refresh
+                    if (await this.refreshAccessToken()) {
+                        // Retry this keyword
+                        return this.scan(keywords, minViewers);
+                    } else {
+                        this.isAuthenticated = false;
+                        console.error('YouTube authentication expired');
                     }
                 }
             }
