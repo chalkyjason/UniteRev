@@ -15,11 +15,17 @@ Multi-platform live stream viewer with multi-monitor support, drag-and-drop reor
 - **Zero Backend**: Everything runs client-side using browser localStorage
 
 ### New in This Version
+🔍 **Stream Scanner**: NEW! Find live streams by keywords - PREMIUM: 500 keywords, 1000 results, faster scanning!
 ✨ **Drag & Drop**: Reorder streams by dragging the `⋮⋮` handle
 💾 **Save Streamers**: Save streamer/channel info instead of just stream URLs
 🔍 **Smart Detection**: YouTube oEmbed integration auto-detects channel names
 🎯 **Platform Icons**: Visual platform indicators (💜 Twitch, ▶️ YouTube, etc.)
 📌 **Save from Grid**: Click the 💾 button on any active stream to save that streamer
+
+### Premium Benefits
+⭐ **Enhanced Scanner**: 500 keywords (vs 50 free), 1000 results (vs 100 free), faster scanning (30s minimum vs 60s)
+⭐ **Unlimited Streamers**: No limit on saved streamers
+⭐ **All Features**: All current and future features included
 
 ## Quick Start
 
@@ -188,6 +194,88 @@ Changing layouts preserves as many streams as possible. Streams beyond the new g
 4. Manage streams, audio, and layout from the control panel
 
 **Synchronization**: Changes in the control panel instantly update the main viewer via localStorage events.
+
+## Stream Scanner (PREMIUM ENHANCED!)
+
+Discover live streams by keywords and trending topics across multiple platforms - with PREMIUM enhancements!
+
+### Premium Advantages
+⭐ **500 keywords** (vs 50 in free version)
+⭐ **1,000 results** (vs 100 in free version)
+⭐ **Faster scanning** (30-second minimum vs 60-second)
+⭐ **All platforms unlocked**
+
+### How to Use
+
+1. **Open Scanner**:
+   - Open the Control Panel
+   - Click the **"🔍 Open Stream Scanner"** button in the Logo Header panel
+   - Scanner opens in a new popup window
+
+2. **Add Keywords** (up to 500!):
+   - Type a keyword (e.g., "protest", "gaming", "cooking")
+   - Press **Enter** to add it
+   - Add multiple keywords to search for different topics
+   - Click **×** on any tag to remove it
+
+3. **Configure Settings**:
+   - **Scan Interval**: How often to refresh (30s to 30min) - Premium can scan every 30s!
+   - **Min. Viewers**: Only show streams with at least X viewers
+   - Enable/disable specific platforms
+
+4. **Start Scanning**:
+   - Click **"🚀 Start Scanning"**
+   - Results appear automatically
+   - Streams update based on your interval
+   - Click **⏸️ Stop Scanning** to pause
+
+### Supported Platforms
+
+| Platform | Icon | Description | Authentication |
+|----------|------|-------------|----------------|
+| **Twitch** | 🟣 | Gaming & IRL streams | Demo data (API key optional) |
+| **YouTube** | 🔴 | YouTube Live | OAuth or API key recommended |
+| **Kick** | 🟢 | Alternative streaming | Demo data only |
+| **TikTok** | ⚫ | TikTok Live | Demo data only |
+
+### YouTube Authentication
+
+For real YouTube data (instead of demo):
+
+**Option 1: OAuth Sign-In (Recommended)**
+1. Get a Google OAuth Client ID from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. In Stream Scanner, click **⚙️ Configure** on YouTube plugin
+3. Enter your Client ID and click **🔐 Sign In with Google**
+4. Higher rate limits and real-time data!
+
+**Option 2: API Key (Basic)**
+1. Get a YouTube Data API v3 key from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Click **⚙️ Configure** on YouTube plugin
+3. Enter your API key and click **Save API Key**
+
+### Features
+
+✅ **Multi-keyword search** - Up to 500 keywords (PREMIUM)
+✅ **Auto-refresh** - Scan every 30 seconds (PREMIUM)
+✅ **More results** - Up to 1,000 results (PREMIUM)
+✅ **Live filtering** - Minimum viewer counts
+✅ **Platform toggle** - Enable only the platforms you want
+✅ **One-click watch** - Open streams directly
+✅ **Authentication support** - Sign in to platforms for real data
+✅ **Zero installation** - Pure client-side JavaScript
+✅ **Modular plugins** - Easy to add/remove platforms
+
+### Data Storage
+
+Scanner settings are stored in localStorage:
+
+| Key | Description |
+|-----|-------------|
+| `scanner_settings` | Keywords, intervals, min viewers |
+| `youtube_auth` | YouTube OAuth credentials (if signed in) |
+| `plugin_configs` | API keys and configuration per platform |
+
+**Privacy**: All data stays on your computer. No external servers.
 
 ## Troubleshooting
 

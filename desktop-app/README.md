@@ -8,6 +8,7 @@ Desktop application version with auto-update functionality.
 - **Auto-Updates**: Automatically checks for updates from GitHub releases
 - **Offline Capable**: Works without internet (except for streaming content)
 - **Native Desktop Experience**: No browser required
+- **Stream Scanner**: Find live streams by keywords across Twitch, YouTube, Kick, and TikTok
 - **Full Browser Integration**: Each stream slot is a real browser (webview) that can:
   - Access ANY URL without embedding restrictions
   - Navigate to streamer profiles to check if they're live

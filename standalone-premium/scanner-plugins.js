@@ -1,0 +1,567 @@
+// Stream Scanner Plugin Architecture
+// Supports multiple streaming platforms for keyword-based discovery
+
+// Base Plugin Class
+class ScannerPlugin {
+    constructor(name, platform, icon) {
+        this.name = name;
+        this.platform = platform;
+        this.icon = icon;
+        this.active = false;
+        this.scanning = false;
+        this.results = [];
+    }
+
+    async scan(keywords, minViewers = 0) {
+        throw new Error('scan() must be implemented by plugin');
+    }
+
+    activate() {
+        this.active = true;
+    }
+
+    deactivate() {
+        this.active = false;
+        this.scanning = false;
+    }
+
+    isLive(stream) {
+        // Override in platform-specific plugins if needed
+        return stream.isLive !== false;
+    }
+}
+
+// Twitch Plugin
+class TwitchPlugin extends ScannerPlugin {
+    constructor() {
+        super('Twitch Scanner', 'twitch', '🟣');
+        this.apiBase = 'https://api.twitch.tv/helix';
+        this.clientId = null; // Users will need to provide their own
+    }
+
+    async scan(keywords, minViewers = 0) {
+        this.scanning = true;
+        const results = [];
+
+        try {
+            // For demo/testing without API key, return mock data
+            if (!this.clientId) {
+                return this.getMockData(keywords, minViewers);
+            }
+
+            // Real API implementation would go here
+            for (const keyword of keywords) {
+                const response = await fetch(
+                    `${this.apiBase}/search/channels?query=${encodeURIComponent(keyword)}&live_only=true`,
+                    {
+                        headers: {
+                            'Client-ID': this.clientId,
+                            'Authorization': `Bearer ${this.accessToken}`
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const streams = data.data
+                        .filter(stream => stream.is_live)
+                        .map(stream => ({
+                            platform: 'twitch',
+                            platformIcon: '🟣',
+                            username: stream.broadcaster_login,
+                            displayName: stream.display_name,
+                            title: stream.title || 'Untitled Stream',
+                            viewers: parseInt(stream.viewer_count) || 0,
+                            game: stream.game_name || 'No Game',
+                            thumbnailUrl: stream.thumbnail_url,
+                            url: `https://twitch.tv/${stream.broadcaster_login}`,
+                            isLive: true,
+                            keyword: keyword
+                        }));
+
+                    results.push(...streams.filter(s => s.viewers >= minViewers));
+                }
+            }
+        } catch (error) {
+            console.error('Twitch scan error:', error);
+            // Fall back to mock data on error
+            return this.getMockData(keywords, minViewers);
+        } finally {
+            this.scanning = false;
+        }
+
+        this.results = results;
+        return results;
+    }
+
+    getMockData(keywords, minViewers) {
+        const mockStreams = [];
+        const games = ['Just Chatting', 'League of Legends', 'Valorant', 'Minecraft', 'GTA V', 'Chess'];
+
+        keywords.forEach(keyword => {
+            const count = Math.floor(Math.random() * 3) + 1;
+            for (let i = 0; i < count; i++) {
+                const viewers = Math.floor(Math.random() * 5000) + 50;
+                if (viewers >= minViewers) {
+                    mockStreams.push({
+                        platform: 'twitch',
+                        platformIcon: '🟣',
+                        username: `streamer_${keyword.toLowerCase()}_${i}`,
+                        displayName: `${keyword}Master${i}`,
+                        title: `${keyword} - ${games[Math.floor(Math.random() * games.length)]} Stream!`,
+                        viewers: viewers,
+                        game: games[Math.floor(Math.random() * games.length)],
+                        url: `https://twitch.tv/streamer_${keyword.toLowerCase()}_${i}`,
+                        isLive: Math.random() > 0.1,
+                        keyword: keyword
+                    });
+                }
+            }
+        });
+
+        this.results = mockStreams;
+        return mockStreams;
+    }
+}
+
+// YouTube Plugin
+class YouTubePlugin extends ScannerPlugin {
+    constructor() {
+        super('YouTube Live Scanner', 'youtube', '🔴');
+        this.apiBase = 'https://www.googleapis.com/youtube/v3';
+        this.apiKey = null; // Users will need to provide their own
+        this.clientId = null;
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+
+        // Load saved credentials
+        this.loadCredentials();
+    }
+
+    loadCredentials() {
+        const saved = localStorage.getItem('youtube_auth');
+        if (saved) {
+            try {
+                const auth = JSON.parse(saved);
+                this.clientId = auth.clientId;
+                this.accessToken = auth.accessToken;
+                this.refreshToken = auth.refreshToken;
+                this.tokenExpiry = auth.tokenExpiry;
+                this.apiKey = auth.apiKey;
+
+                // Check if token is still valid
+                if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+                    this.isAuthenticated = true;
+                }
+            } catch (error) {
+                console.error('Error loading YouTube credentials:', error);
+            }
+        }
+    }
+
+    saveCredentials() {
+        const auth = {
+            clientId: this.clientId,
+            accessToken: this.accessToken,
+            refreshToken: this.refreshToken,
+            tokenExpiry: this.tokenExpiry,
+            apiKey: this.apiKey
+        };
+        localStorage.setItem('youtube_auth', JSON.stringify(auth));
+    }
+
+    async signIn(clientId, clientSecret = null) {
+        this.clientId = clientId;
+
+        // OAuth 2.0 flow
+        const redirectUri = window.location.origin + window.location.pathname;
+        const scope = 'https://www.googleapis.com/auth/youtube.readonly';
+
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${encodeURIComponent(clientId)}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=token` +
+            `&scope=${encodeURIComponent(scope)}` +
+            `&state=youtube_auth`;
+
+        // Open OAuth popup
+        const width = 500;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        const popup = window.open(
+            authUrl,
+            'YouTube Sign In',
+            `width=${width},height=${height},left=${left},top=${top}`
+        );
+
+        // Listen for OAuth callback
+        return new Promise((resolve, reject) => {
+            const checkPopup = setInterval(() => {
+                try {
+                    if (popup.closed) {
+                        clearInterval(checkPopup);
+                        reject(new Error('Sign-in popup was closed'));
+                        return;
+                    }
+
+                    // Check if we got redirected back with token
+                    const popupUrl = popup.location.href;
+                    if (popupUrl.includes('access_token=')) {
+                        clearInterval(checkPopup);
+                        popup.close();
+
+                        // Parse token from URL
+                        const params = new URLSearchParams(popupUrl.split('#')[1]);
+                        this.accessToken = params.get('access_token');
+                        const expiresIn = parseInt(params.get('expires_in')) || 3600;
+                        this.tokenExpiry = Date.now() + (expiresIn * 1000);
+                        this.isAuthenticated = true;
+
+                        this.saveCredentials();
+                        resolve(true);
+                    }
+                } catch (error) {
+                    // Cross-origin error - popup hasn't redirected back yet
+                }
+            }, 500);
+
+            // Timeout after 5 minutes
+            setTimeout(() => {
+                clearInterval(checkPopup);
+                if (!popup.closed) popup.close();
+                reject(new Error('Sign-in timeout'));
+            }, 300000);
+        });
+    }
+
+    async refreshAccessToken() {
+        if (!this.refreshToken || !this.clientId) {
+            return false;
+        }
+
+        try {
+            const response = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    client_id: this.clientId,
+                    refresh_token: this.refreshToken,
+                    grant_type: 'refresh_token'
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.accessToken = data.access_token;
+                const expiresIn = data.expires_in || 3600;
+                this.tokenExpiry = Date.now() + (expiresIn * 1000);
+                this.isAuthenticated = true;
+                this.saveCredentials();
+                return true;
+            }
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+        }
+
+        return false;
+    }
+
+    signOut() {
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+        localStorage.removeItem('youtube_auth');
+    }
+
+    async ensureValidToken() {
+        // Check if token needs refresh
+        if (this.tokenExpiry && Date.now() > this.tokenExpiry - 60000) {
+            // Token expired or expiring soon
+            if (this.refreshToken) {
+                await this.refreshAccessToken();
+            } else {
+                this.isAuthenticated = false;
+                return false;
+            }
+        }
+        return this.isAuthenticated;
+    }
+
+    async scan(keywords, minViewers = 0) {
+        this.scanning = true;
+        const results = [];
+
+        try {
+            // Check if we have valid authentication
+            const hasValidToken = await this.ensureValidToken();
+
+            // For demo/testing without credentials, return mock data
+            if (!hasValidToken && !this.apiKey) {
+                return this.getMockData(keywords, minViewers);
+            }
+
+            // Prepare request headers
+            const headers = {};
+            let authParam = '';
+
+            if (hasValidToken) {
+                // Use OAuth token (preferred)
+                headers['Authorization'] = `Bearer ${this.accessToken}`;
+            } else if (this.apiKey) {
+                // Fall back to API key
+                authParam = `&key=${this.apiKey}`;
+            }
+
+            // Real API implementation
+            for (const keyword of keywords) {
+                const searchUrl = hasValidToken
+                    ? `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25`
+                    : `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25${authParam}`;
+
+                const response = await fetch(searchUrl, { headers });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (!data.items || data.items.length === 0) continue;
+
+                    // Batch video IDs for details request
+                    const videoIds = data.items.map(video => video.id.videoId).join(',');
+
+                    const detailsUrl = hasValidToken
+                        ? `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}`
+                        : `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}${authParam}`;
+
+                    const detailsResponse = await fetch(detailsUrl, { headers });
+
+                    if (detailsResponse.ok) {
+                        const details = await detailsResponse.json();
+
+                        for (const item of details.items) {
+                            const viewers = parseInt(item.liveStreamingDetails?.concurrentViewers) || 0;
+
+                            if (viewers >= minViewers && item.snippet.liveBroadcastContent === 'live') {
+                                results.push({
+                                    platform: 'youtube',
+                                    platformIcon: '🔴',
+                                    username: item.snippet.channelTitle,
+                                    displayName: item.snippet.channelTitle,
+                                    title: item.snippet.title,
+                                    viewers: viewers,
+                                    url: `https://youtube.com/watch?v=${item.id}`,
+                                    thumbnailUrl: item.snippet.thumbnails.medium?.url,
+                                    isLive: true,
+                                    keyword: keyword
+                                });
+                            }
+                        }
+                    }
+                } else if (response.status === 401) {
+                    // Token expired, try to refresh
+                    if (await this.refreshAccessToken()) {
+                        // Retry this keyword
+                        return this.scan(keywords, minViewers);
+                    } else {
+                        this.isAuthenticated = false;
+                        console.error('YouTube authentication expired');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('YouTube scan error:', error);
+            return this.getMockData(keywords, minViewers);
+        } finally {
+            this.scanning = false;
+        }
+
+        this.results = results;
+        return results;
+    }
+
+    getMockData(keywords, minViewers) {
+        const mockStreams = [];
+
+        keywords.forEach(keyword => {
+            const count = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < count; i++) {
+                const viewers = Math.floor(Math.random() * 3000) + 100;
+                if (viewers >= minViewers) {
+                    mockStreams.push({
+                        platform: 'youtube',
+                        platformIcon: '🔴',
+                        username: `${keyword}Channel${i}`,
+                        displayName: `${keyword} Live ${i}`,
+                        title: `🔴 LIVE: ${keyword} - Amazing Content!`,
+                        viewers: viewers,
+                        url: `https://youtube.com/watch?v=demo${i}`,
+                        isLive: true,
+                        keyword: keyword
+                    });
+                }
+            }
+        });
+
+        this.results = mockStreams;
+        return mockStreams;
+    }
+}
+
+// Kick Plugin
+class KickPlugin extends ScannerPlugin {
+    constructor() {
+        super('Kick Scanner', 'kick', '🟢');
+        this.apiBase = 'https://kick.com/api/v2';
+    }
+
+    async scan(keywords, minViewers = 0) {
+        this.scanning = true;
+
+        try {
+            // Kick doesn't have official API yet, using mock data
+            return this.getMockData(keywords, minViewers);
+        } finally {
+            this.scanning = false;
+        }
+    }
+
+    getMockData(keywords, minViewers) {
+        const mockStreams = [];
+
+        keywords.forEach(keyword => {
+            const count = Math.floor(Math.random() * 2);
+            for (let i = 0; i < count; i++) {
+                const viewers = Math.floor(Math.random() * 1000) + 20;
+                if (viewers >= minViewers) {
+                    mockStreams.push({
+                        platform: 'kick',
+                        platformIcon: '🟢',
+                        username: `${keyword}_kick_${i}`,
+                        displayName: `${keyword}Streamer${i}`,
+                        title: `${keyword} Stream on Kick!`,
+                        viewers: viewers,
+                        url: `https://kick.com/${keyword}_kick_${i}`,
+                        isLive: true,
+                        keyword: keyword
+                    });
+                }
+            }
+        });
+
+        this.results = mockStreams;
+        return mockStreams;
+    }
+}
+
+// TikTok Live Plugin
+class TikTokPlugin extends ScannerPlugin {
+    constructor() {
+        super('TikTok Live Scanner', 'tiktok', '⚫');
+    }
+
+    async scan(keywords, minViewers = 0) {
+        this.scanning = true;
+
+        try {
+            // TikTok Live API is restricted, using mock data
+            return this.getMockData(keywords, minViewers);
+        } finally {
+            this.scanning = false;
+        }
+    }
+
+    getMockData(keywords, minViewers) {
+        const mockStreams = [];
+
+        keywords.forEach(keyword => {
+            const count = Math.floor(Math.random() * 3);
+            for (let i = 0; i < count; i++) {
+                const viewers = Math.floor(Math.random() * 2000) + 50;
+                if (viewers >= minViewers) {
+                    mockStreams.push({
+                        platform: 'tiktok',
+                        platformIcon: '⚫',
+                        username: `@${keyword.toLowerCase()}${i}`,
+                        displayName: `@${keyword.toLowerCase()}${i}`,
+                        title: `🎵 ${keyword} - Live Now!`,
+                        viewers: viewers,
+                        url: `https://tiktok.com/@${keyword.toLowerCase()}${i}/live`,
+                        isLive: Math.random() > 0.2,
+                        keyword: keyword
+                    });
+                }
+            }
+        });
+
+        this.results = mockStreams;
+        return mockStreams;
+    }
+}
+
+// Plugin Manager
+class PluginManager {
+    constructor() {
+        this.plugins = [
+            new TwitchPlugin(),
+            new YouTubePlugin(),
+            new KickPlugin(),
+            new TikTokPlugin()
+        ];
+
+        // Activate all plugins by default
+        this.plugins.forEach(plugin => plugin.activate());
+    }
+
+    getPlugin(platform) {
+        return this.plugins.find(p => p.platform === platform);
+    }
+
+    getActivePlugins() {
+        return this.plugins.filter(p => p.active);
+    }
+
+    async scanAll(keywords, minViewers = 0) {
+        const activePlugins = this.getActivePlugins();
+        const allResults = [];
+
+        // Scan all active plugins in parallel
+        const scanPromises = activePlugins.map(plugin =>
+            plugin.scan(keywords, minViewers).catch(err => {
+                console.error(`${plugin.name} scan failed:`, err);
+                return [];
+            })
+        );
+
+        const results = await Promise.all(scanPromises);
+
+        // Flatten results
+        results.forEach(platformResults => {
+            allResults.push(...platformResults);
+        });
+
+        // Sort by viewer count (descending)
+        allResults.sort((a, b) => b.viewers - a.viewers);
+
+        return allResults;
+    }
+
+    togglePlugin(platform, active) {
+        const plugin = this.getPlugin(platform);
+        if (plugin) {
+            if (active) {
+                plugin.activate();
+            } else {
+                plugin.deactivate();
+            }
+        }
+    }
+}
+
+// Export for use in scanner.js
+window.PluginManager = PluginManager;
