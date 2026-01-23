@@ -12,12 +12,17 @@ const app = {
 
     // Initialize
     init() {
-        this.loadState();
-        this.render();
-        this.updateLayoutButtons();
-        this.renderSavedStreamers();
-        this.setupStorageListener();
-        this.initSortable();
+        try {
+            this.loadState();
+            this.render();
+            this.updateLayoutButtons();
+            this.renderSavedStreamers();
+            this.setupStorageListener();
+            this.initSortable();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.showError('Failed to initialize app. Please refresh the page.');
+        }
     },
 
     // Initialize drag-and-drop
@@ -432,13 +437,14 @@ const app = {
 
     // Render Grid
     render() {
-        const [rows, cols] = this.gridLayout.split('x').map(Number);
-        const grid = document.getElementById('streamGrid');
+        try {
+            const [rows, cols] = this.gridLayout.split('x').map(Number);
+            const grid = document.getElementById('streamGrid');
 
-        grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-        grid.innerHTML = '';
+            grid.innerHTML = '';
 
         for (let i = 0; i < this.gridStreams.length; i++) {
             const stream = this.gridStreams[i];
@@ -534,9 +540,13 @@ const app = {
             grid.appendChild(cell);
         }
 
-        this.updateAudioStatus();
-        this.initSortable(); // Reinitialize sortable after render
-        this.initResizeHandles(); // Initialize resize functionality
+            this.updateAudioStatus();
+            this.initSortable(); // Reinitialize sortable after render
+            this.initResizeHandles(); // Initialize resize functionality
+        } catch (error) {
+            console.error('Render error:', error);
+            this.showError('Failed to render streams. Please refresh the page.');
+        }
     },
 
     // Initialize resize handles
@@ -1021,6 +1031,49 @@ const app = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    showError(message) {
+        // Create error notification
+        const error = document.createElement('div');
+        error.className = 'error-notification';
+        error.setAttribute('role', 'alert');
+        error.setAttribute('aria-live', 'assertive');
+        error.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 2px solid #DC2626;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        error.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <div style="flex: 1;">${this.escapeHtml(message)}</div>
+                <button onclick="this.parentElement.parentElement.remove()"
+                        style="background: none; border: none; cursor: pointer; font-size: 20px; color: #991B1B;"
+                        aria-label="Close error message">
+                    ×
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(error);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (error.parentElement) {
+                error.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => error.remove(), 300);
+            }
+        }, 5000);
     }
 };
 

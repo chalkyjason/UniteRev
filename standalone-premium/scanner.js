@@ -204,10 +204,15 @@ class StreamScanner {
     }
 
     togglePlugin(platform) {
-        const plugin = this.pluginManager.getPlugin(platform);
-        if (plugin) {
-            plugin.active = !plugin.active;
-            this.renderPluginList();
+        try {
+            const plugin = this.pluginManager.getPlugin(platform);
+            if (plugin) {
+                plugin.active = !plugin.active;
+                this.renderPluginList();
+            }
+        } catch (error) {
+            console.error('Error toggling plugin:', error);
+            this.showError('Failed to toggle plugin. Please try again.');
         }
     }
 
@@ -231,8 +236,8 @@ class StreamScanner {
             // Already signed in - show account info and sign out option
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🔴 YouTube Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #D1FAE5; border: 2px solid #10B981; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -262,8 +267,8 @@ class StreamScanner {
             // Not signed in - show sign-in options
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🔴 YouTube Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -314,7 +319,16 @@ class StreamScanner {
         }
 
         document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('show'), 10);
+        setTimeout(() => {
+            modal.classList.add('show');
+            // Focus first focusable element for accessibility
+            const firstFocusable = modal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
+        }, 10);
     }
 
     showTwitchConfig(plugin) {
@@ -324,8 +338,8 @@ class StreamScanner {
             // Already authenticated - show status and sign out option
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🟣 Twitch Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🟣 Twitch Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #D1FAE5; border: 2px solid #10B981; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -354,8 +368,8 @@ class StreamScanner {
             // Not authenticated - show configuration form
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🟣 Twitch Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🟣 Twitch Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -385,13 +399,29 @@ class StreamScanner {
         }
 
         document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('show'), 10);
+        setTimeout(() => {
+            modal.classList.add('show');
+            // Focus first focusable element for accessibility
+            const firstFocusable = modal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
+        }, 10);
     }
 
     createModal() {
+        // Store the currently focused element to restore later
+        this.previouslyFocusedElement = document.activeElement;
+
         const overlay = document.createElement('div');
         overlay.className = 'config-modal';
         overlay.id = 'configModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'modalTitle');
+        overlay.setAttribute('tabindex', '-1');
 
         const modalContent = document.createElement('div');
         modalContent.className = 'modal-content';
@@ -405,6 +435,33 @@ class StreamScanner {
             }
         });
 
+        // Keyboard navigation
+        overlay.addEventListener('keydown', (e) => {
+            // Close on Escape key
+            if (e.key === 'Escape') {
+                this.closeModal();
+            }
+
+            // Trap focus within modal (accessibility)
+            if (e.key === 'Tab') {
+                const focusableElements = overlay.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    // Shift+Tab on first element -> go to last
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    // Tab on last element -> go to first
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+
         return overlay;
     }
 
@@ -412,7 +469,13 @@ class StreamScanner {
         const modal = document.getElementById('configModal');
         if (modal) {
             modal.classList.remove('show');
-            setTimeout(() => modal.remove(), 300);
+            setTimeout(() => {
+                modal.remove();
+                // Restore focus to previously focused element
+                if (this.previouslyFocusedElement && this.previouslyFocusedElement.focus) {
+                    this.previouslyFocusedElement.focus();
+                }
+            }, 300);
         }
     }
 
@@ -574,22 +637,37 @@ class StreamScanner {
             return;
         }
 
-        this.isScanning = true;
-        this.showScanningIndicator(true);
+        // Debounce to prevent rapid scan spamming
+        if (this.scanDebounce) {
+            console.log('Scan request debounced. Please wait...');
+            return;
+        }
 
-        // Initial scan
-        await this.performScan();
+        this.scanDebounce = true;
+        setTimeout(() => this.scanDebounce = false, 2000);
 
-        // Set up interval scanning
-        this.scanTimer = setInterval(() => {
-            this.performScan();
-        }, this.scanInterval * 1000);
+        try {
+            this.isScanning = true;
+            this.showScanningIndicator(true);
 
-        // Update button
-        const btn = document.querySelector('button[onclick*="startScanning"]');
-        if (btn) {
-            btn.textContent = '⏸️ Stop Scanning';
-            btn.onclick = () => this.stopScanning();
+            // Initial scan
+            await this.performScan();
+
+            // Set up interval scanning
+            this.scanTimer = setInterval(() => {
+                this.performScan();
+            }, this.scanInterval * 1000);
+
+            // Update button
+            const btn = document.querySelector('button[onclick*="startScanning"]');
+            if (btn) {
+                btn.textContent = '⏸️ Stop Scanning';
+                btn.onclick = () => this.stopScanning();
+            }
+        } catch (error) {
+            console.error('Error starting scan:', error);
+            this.showError('Failed to start scanning. Please try again.');
+            this.stopScanning();
         }
     }
 
@@ -629,6 +707,8 @@ class StreamScanner {
             this.renderPluginList(); // Update with new counts
         } catch (error) {
             console.error('Scan error:', error);
+            this.showError('Scan failed: ' + (error.message || 'Unknown error'));
+            // Don't stop scanning on error - just log and continue
         }
     }
 
@@ -640,69 +720,85 @@ class StreamScanner {
     }
 
     renderResults(results) {
-        const container = document.getElementById('resultsContainer');
+        try {
+            const container = document.getElementById('resultsContainer');
 
-        if (results.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <div>No streams found matching your keywords</div>
-                    <div style="margin-top: 8px; font-size: 14px; opacity: 0.8;">
-                        Try different keywords or lower the minimum viewers
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '<div class="results-grid"></div>';
-        const grid = container.querySelector('.results-grid');
-
-        results.forEach(stream => {
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            if (stream.isLive) card.classList.add('live');
-
-            const formattedViewers = stream.viewers >= 1000
-                ? (stream.viewers / 1000).toFixed(1) + 'K'
-                : stream.viewers;
-
-            card.innerHTML = `
-                <div class="result-header">
-                    <div class="result-avatar">
-                        <span class="platform-badge">${escapeHtml(stream.platformIcon)}</span>
-                    </div>
-                    <div class="result-info">
-                        <div class="result-name">${escapeHtml(stream.displayName)}</div>
-                        <div class="result-meta">
-                            ${escapeHtml(stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1))}
-                            ${stream.isLive ? '<span class="live-badge">LIVE</span>' : ''}
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <div>No streams found matching your keywords</div>
+                        <div style="margin-top: 8px; font-size: 14px; opacity: 0.8;">
+                            Try different keywords or lower the minimum viewers
                         </div>
                     </div>
-                </div>
-                <div class="result-title">${escapeHtml(stream.title)}</div>
-                <div class="result-stats">
-                    <span>👁️ ${formattedViewers} viewers</span>
-                    ${stream.game ? `<span>🎮 ${escapeHtml(stream.game)}</span>` : ''}
-                </div>
-                <div class="result-actions">
-                    <button class="btn btn-success" onclick="scanner.openStream('${escapeHtml(stream.url)}')">
-                        ▶️ Watch
-                    </button>
-                    <button class="btn btn-secondary" onclick="scanner.addToMonitor('${escapeHtml(stream.username)}', '${escapeHtml(stream.platform)}')">
-                        ⭐ Monitor
-                    </button>
-                </div>
-            `;
+                `;
+                return;
+            }
 
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('button')) {
-                    this.openStream(stream.url);
-                }
+            container.innerHTML = '<div class="results-grid"></div>';
+            const grid = container.querySelector('.results-grid');
+
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+
+            results.forEach(stream => {
+                const card = this.createStreamCard(stream);
+                fragment.appendChild(card);
             });
 
-            grid.appendChild(card);
+            // Single DOM update
+            grid.appendChild(fragment);
+        } catch (error) {
+            console.error('Error rendering results:', error);
+            this.showError('Failed to display results. Please try again.');
+        }
+    }
+
+    createStreamCard(stream) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        if (stream.isLive) card.classList.add('live');
+
+        const formattedViewers = stream.viewers >= 1000
+            ? (stream.viewers / 1000).toFixed(1) + 'K'
+            : stream.viewers;
+
+        card.innerHTML = `
+            <div class="result-header">
+                <div class="result-avatar">
+                    <span class="platform-badge">${escapeHtml(stream.platformIcon)}</span>
+                </div>
+                <div class="result-info">
+                    <div class="result-name">${escapeHtml(stream.displayName)}</div>
+                    <div class="result-meta">
+                        ${escapeHtml(stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1))}
+                        ${stream.isLive ? '<span class="live-badge">LIVE</span>' : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="result-title">${escapeHtml(stream.title)}</div>
+            <div class="result-stats">
+                <span>👁️ ${formattedViewers} viewers</span>
+                ${stream.game ? `<span>🎮 ${escapeHtml(stream.game)}</span>` : ''}
+            </div>
+            <div class="result-actions">
+                <button class="btn btn-success" onclick="scanner.openStream('${escapeHtml(stream.url)}')" aria-label="Watch ${escapeHtml(stream.displayName)}">
+                    ▶️ Watch
+                </button>
+                <button class="btn btn-secondary" onclick="scanner.addToMonitor('${escapeHtml(stream.username)}', '${escapeHtml(stream.platform)}')" aria-label="Monitor ${escapeHtml(stream.displayName)}">
+                    ⭐ Monitor
+                </button>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                this.openStream(stream.url);
+            }
         });
+
+        return card;
     }
 
     openStream(url) {
@@ -728,6 +824,49 @@ class StreamScanner {
         a.href = url;
         a.download = `stream-scan-${Date.now()}.json`;
         a.click();
+    }
+
+    showError(message) {
+        // Create error notification
+        const error = document.createElement('div');
+        error.className = 'error-notification';
+        error.setAttribute('role', 'alert');
+        error.setAttribute('aria-live', 'assertive');
+        error.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 2px solid #DC2626;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        error.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <div style="flex: 1;">${escapeHtml(message)}</div>
+                <button onclick="this.parentElement.parentElement.remove()"
+                        style="background: none; border: none; cursor: pointer; font-size: 20px; color: #991B1B;"
+                        aria-label="Close error message">
+                    ×
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(error);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (error.parentElement) {
+                error.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => error.remove(), 300);
+            }
+        }, 5000);
     }
 }
 
