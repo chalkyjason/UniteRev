@@ -77,25 +77,45 @@ const app = {
 
     // Save/Load State
     saveState() {
-        localStorage.setItem('multistream_layout', this.gridLayout);
-        localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
-        localStorage.setItem('multistream_audio', this.activeAudioIndex);
-        localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+        try {
+            localStorage.setItem('multistream_layout', this.gridLayout);
+            localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
+            localStorage.setItem('multistream_audio', this.activeAudioIndex);
+            localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+        } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+                console.error('Storage quota exceeded. Please clear some saved streams.');
+                alert('Storage full! Please clear some saved streams or browser data to continue saving.');
+            } else if (error.name === 'SecurityError') {
+                console.warn('localStorage not available (private browsing mode)');
+            } else {
+                console.error('Failed to save state:', error);
+            }
+        }
     },
 
     loadState() {
-        this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
-        this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
-        this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
+        try {
+            this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
+            this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
+            this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
 
-        // Load streamers (new format) or migrate from old saved streams
-        const savedStreamers = localStorage.getItem('multistream_streamers');
-        if (savedStreamers) {
-            this.savedStreamers = JSON.parse(savedStreamers);
-        } else {
-            // Migration: convert old saved streams to streamers
-            const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
-            this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
+            // Load streamers (new format) or migrate from old saved streams
+            const savedStreamers = localStorage.getItem('multistream_streamers');
+            if (savedStreamers) {
+                this.savedStreamers = JSON.parse(savedStreamers);
+            } else {
+                // Migration: convert old saved streams to streamers
+                const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
+                this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
+            }
+        } catch (error) {
+            console.error('Failed to load state:', error);
+            // Use defaults
+            this.gridLayout = '2x2';
+            this.gridStreams = [];
+            this.activeAudioIndex = -1;
+            this.savedStreamers = [];
         }
 
         // Ensure grid array matches layout

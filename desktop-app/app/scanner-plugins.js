@@ -37,6 +37,8 @@ class TwitchPlugin extends ScannerPlugin {
         super('Twitch Scanner', 'twitch', '🟣');
         this.apiBase = 'https://api.twitch.tv/helix';
         this.clientId = null; // Users will need to provide their own
+        this.accessToken = null;
+        this.clientSecret = null;
     }
 
     async scan(keywords, minViewers = 0) {
@@ -202,7 +204,7 @@ class YouTubePlugin extends ScannerPlugin {
         return new Promise((resolve, reject) => {
             const checkPopup = setInterval(() => {
                 try {
-                    if (popup.closed) {
+                    if (!popup || popup.closed) {
                         clearInterval(checkPopup);
                         reject(new Error('Sign-in popup was closed'));
                         return;
@@ -225,14 +227,21 @@ class YouTubePlugin extends ScannerPlugin {
                         resolve(true);
                     }
                 } catch (error) {
-                    // Cross-origin error - popup hasn't redirected back yet
+                    // Only ignore cross-origin SecurityError
+                    if (error.name !== 'SecurityError') {
+                        console.error('OAuth popup error:', error);
+                        clearInterval(checkPopup);
+                        if (popup && !popup.closed) popup.close();
+                        reject(error);
+                    }
+                    // Cross-origin SecurityError - popup hasn't redirected back yet, continue polling
                 }
             }, 500);
 
             // Timeout after 5 minutes
             setTimeout(() => {
                 clearInterval(checkPopup);
-                if (!popup.closed) popup.close();
+                if (popup && !popup.closed) popup.close();
                 reject(new Error('Sign-in timeout'));
             }, 300000);
         });

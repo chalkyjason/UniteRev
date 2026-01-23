@@ -1,6 +1,17 @@
 // Stream Scanner - Main Controller
 // Manages keyword-based stream discovery across multiple platforms
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 class StreamScanner {
     constructor() {
         this.pluginManager = new PluginManager();
@@ -231,7 +242,7 @@ class StreamScanner {
                                 <br>Enable YouTube Data API v3 and create OAuth 2.0 Client ID
                             </div>
                         </div>
-                        <button class="btn btn-success" onclick="scanner.youtubeSignIn()" style="width: 100%;">
+                        <button class="btn btn-success" onclick="scanner.youtubeSignIn(event)" style="width: 100%;">
                             🔐 Sign In with Google
                         </button>
                     </div>
@@ -320,7 +331,7 @@ class StreamScanner {
         }
     }
 
-    async youtubeSignIn() {
+    async youtubeSignIn(event) {
         const clientId = document.getElementById('youtubeClientId')?.value.trim();
         if (!clientId) {
             alert('Please enter your Google OAuth Client ID first.');
@@ -331,9 +342,11 @@ class StreamScanner {
         if (!plugin) return;
 
         try {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = '⏳ Opening sign-in...';
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Opening sign-in...';
+            }
 
             await plugin.signIn(clientId);
 
@@ -342,9 +355,11 @@ class StreamScanner {
             alert('Successfully signed in to YouTube!');
         } catch (error) {
             alert('Sign-in failed: ' + error.message);
-            const btn = event.target;
-            btn.disabled = false;
-            btn.textContent = '🔐 Sign In with Google';
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '🔐 Sign In with Google';
+            }
         }
     }
 
@@ -523,26 +538,26 @@ class StreamScanner {
             card.innerHTML = `
                 <div class="result-header">
                     <div class="result-avatar">
-                        <span class="platform-badge">${stream.platformIcon}</span>
+                        <span class="platform-badge">${escapeHtml(stream.platformIcon)}</span>
                     </div>
                     <div class="result-info">
-                        <div class="result-name">${stream.displayName}</div>
+                        <div class="result-name">${escapeHtml(stream.displayName)}</div>
                         <div class="result-meta">
-                            ${stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1)}
+                            ${escapeHtml(stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1))}
                             ${stream.isLive ? '<span class="live-badge">LIVE</span>' : ''}
                         </div>
                     </div>
                 </div>
-                <div class="result-title">${stream.title}</div>
+                <div class="result-title">${escapeHtml(stream.title)}</div>
                 <div class="result-stats">
                     <span>👁️ ${formattedViewers} viewers</span>
-                    ${stream.game ? `<span>🎮 ${stream.game}</span>` : ''}
+                    ${stream.game ? `<span>🎮 ${escapeHtml(stream.game)}</span>` : ''}
                 </div>
                 <div class="result-actions">
-                    <button class="btn btn-success" onclick="scanner.openStream('${stream.url}')">
+                    <button class="btn btn-success" onclick="scanner.openStream('${escapeHtml(stream.url)}')">
                         ▶️ Watch
                     </button>
-                    <button class="btn btn-secondary" onclick="scanner.addToMonitor('${stream.username}', '${stream.platform}')">
+                    <button class="btn btn-secondary" onclick="scanner.addToMonitor('${escapeHtml(stream.username)}', '${escapeHtml(stream.platform)}')">
                         ⭐ Monitor
                     </button>
                 </div>

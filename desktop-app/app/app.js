@@ -77,25 +77,45 @@ const app = {
 
     // Save/Load State
     saveState() {
-        localStorage.setItem('multistream_layout', this.gridLayout);
-        localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
-        localStorage.setItem('multistream_audio', this.activeAudioIndex);
-        localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+        try {
+            localStorage.setItem('multistream_layout', this.gridLayout);
+            localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
+            localStorage.setItem('multistream_audio', this.activeAudioIndex);
+            localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+        } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+                console.error('Storage quota exceeded. Please clear some saved streams.');
+                alert('Storage full! Please clear some saved streams or browser data to continue saving.');
+            } else if (error.name === 'SecurityError') {
+                console.warn('localStorage not available (private browsing mode)');
+            } else {
+                console.error('Failed to save state:', error);
+            }
+        }
     },
 
     loadState() {
-        this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
-        this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
-        this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
+        try {
+            this.gridLayout = localStorage.getItem('multistream_layout') || '2x2';
+            this.gridStreams = JSON.parse(localStorage.getItem('multistream_grid') || '[]');
+            this.activeAudioIndex = parseInt(localStorage.getItem('multistream_audio') || '-1');
 
-        // Load streamers (new format) or migrate from old saved streams
-        const savedStreamers = localStorage.getItem('multistream_streamers');
-        if (savedStreamers) {
-            this.savedStreamers = JSON.parse(savedStreamers);
-        } else {
-            // Migration: convert old saved streams to streamers
-            const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
-            this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
+            // Load streamers (new format) or migrate from old saved streams
+            const savedStreamers = localStorage.getItem('multistream_streamers');
+            if (savedStreamers) {
+                this.savedStreamers = JSON.parse(savedStreamers);
+            } else {
+                // Migration: convert old saved streams to streamers
+                const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
+                this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
+            }
+        } catch (error) {
+            console.error('Failed to load state:', error);
+            // Use defaults
+            this.gridLayout = '2x2';
+            this.gridStreams = [];
+            this.activeAudioIndex = -1;
+            this.savedStreamers = [];
         }
 
         // Ensure grid array matches layout
@@ -428,30 +448,17 @@ const app = {
                 cell.style.gridColumn = `span ${spanCols}`;
                 cell.style.gridRow = `span ${spanRows}`;
 
+                const embedUrl = this.getEmbedUrl(stream.url);
                 const isAlreadySaved = this.isStreamerSaved(stream.url);
 
                 cell.innerHTML = `
-                    <div class="webview-container">
-                        <div class="webview-nav">
-                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'back')" title="Back">◄</button>
-                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'forward')" title="Forward">►</button>
-                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'reload')" title="Refresh">↻</button>
-                            <input type="text" class="webview-url" id="url-${i}" value="${this.escapeHtml(stream.url)}"
-                                   onkeypress="if(event.key==='Enter') app.webviewNavigate(${i}, 'goto', this.value)"
-                                   onclick="event.stopPropagation();" placeholder="Enter URL...">
-                            <button class="nav-btn" onclick="app.webviewNavigate(${i}, 'goto', document.getElementById('url-${i}').value)" title="Go">Go</button>
-                        </div>
-                        <webview
-                            id="webview-${i}"
-                            class="stream-frame"
-                            src="${this.escapeHtml(stream.url)}"
-                            ${i === this.activeAudioIndex ? '' : 'muted'}
-                            allowpopups
-                            partition="persist:stream"
-                            webpreferences="contextIsolation=no"
-                            disablewebsecurity>
-                        </webview>
-                    </div>
+                    <iframe
+                        class="stream-frame"
+                        src="${embedUrl}${i === this.activeAudioIndex ? '' : '&mute=1'}"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
                     <div class="stream-overlay">
                         <div class="stream-header">
                             <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
@@ -519,7 +526,6 @@ const app = {
 
         this.updateAudioStatus();
         this.initSortable(); // Reinitialize sortable after render
-        this.setupWebviewListeners(); // Setup webview event listeners
         this.initResizeHandles(); // Initialize resize functionality
     },
 
@@ -536,6 +542,7 @@ const app = {
                 const direction = handle.dataset.direction;
                 const cell = document.querySelector(`.stream-cell[data-index="${index}"]`);
                 const grid = document.getElementById('streamGrid');
+                const gridRect = grid.getBoundingClientRect();
 
                 if (!cell) return;
 
@@ -726,7 +733,7 @@ const app = {
     },
 
     updateAudioIndicators() {
-        // Update audio indicators and webview mute states
+        // Update audio indicators without reloading iframes
         document.querySelectorAll('.stream-cell').forEach((cell, i) => {
             const isActive = i === this.activeAudioIndex;
             const audioIcon = cell.querySelector('.audio-icon');
@@ -743,10 +750,17 @@ const app = {
                 cell.classList.toggle('active-audio', isActive);
             }
 
-            // Update webview mute state
-            const webview = document.getElementById(`webview-${i}`);
-            if (webview && this.gridStreams[i]) {
-                webview.setAudioMuted(!isActive);
+            // Update iframe mute parameter by reloading only if needed
+            const iframe = cell.querySelector('iframe');
+            if (iframe && this.gridStreams[i]) {
+                const stream = this.gridStreams[i];
+                const embedUrl = this.getEmbedUrl(stream.url);
+                const newSrc = `${embedUrl}${isActive ? '' : '&mute=1'}`;
+
+                // Only reload if mute state actually changed
+                if (iframe.src !== newSrc) {
+                    iframe.src = newSrc;
+                }
             }
         });
     },
@@ -825,94 +839,6 @@ const app = {
             this.render();
             this.saveState();
         }
-    },
-
-    webviewNavigate(index, action, url) {
-        const webview = document.getElementById(`webview-${index}`);
-        const urlInput = document.getElementById(`url-${index}`);
-
-        if (!webview) return;
-
-        switch(action) {
-            case 'back':
-                if (webview.canGoBack()) {
-                    webview.goBack();
-                }
-                break;
-            case 'forward':
-                if (webview.canGoForward()) {
-                    webview.goForward();
-                }
-                break;
-            case 'reload':
-                webview.reload();
-                break;
-            case 'goto':
-                if (url) {
-                    // Ensure URL has protocol
-                    if (!url.match(/^https?:\/\//)) {
-                        url = 'https://' + url;
-                    }
-                    webview.src = url;
-                    if (this.gridStreams[index]) {
-                        this.gridStreams[index].url = url;
-                        this.saveState();
-                    }
-                }
-                break;
-        }
-    },
-
-    setupWebviewListeners() {
-        // Setup event listeners for all webviews
-        document.querySelectorAll('webview').forEach((webview, index) => {
-            // Grant permissions for clipboard, media, etc.
-            webview.addEventListener('permission-request', (e) => {
-                // Allow clipboard, media devices, fullscreen, etc.
-                if (e.permission === 'clipboard-read' ||
-                    e.permission === 'clipboard-write' ||
-                    e.permission === 'clipboard-sanitized-write' ||
-                    e.permission === 'media' ||
-                    e.permission === 'mediaKeySystem' ||
-                    e.permission === 'geolocation' ||
-                    e.permission === 'notifications' ||
-                    e.permission === 'fullscreen' ||
-                    e.permission === 'pointerLock') {
-                    e.request.allow();
-                }
-            });
-
-            // Update URL bar when navigation occurs
-            webview.addEventListener('did-navigate', (e) => {
-                const urlInput = document.getElementById(`url-${index}`);
-                if (urlInput) {
-                    urlInput.value = e.url;
-                }
-            });
-
-            webview.addEventListener('did-navigate-in-page', (e) => {
-                const urlInput = document.getElementById(`url-${index}`);
-                if (urlInput) {
-                    urlInput.value = e.url;
-                }
-            });
-
-            // Handle loading states
-            webview.addEventListener('did-start-loading', () => {
-                webview.classList.add('loading');
-            });
-
-            webview.addEventListener('did-stop-loading', () => {
-                webview.classList.remove('loading');
-            });
-
-            // Auto-unmute active audio webview
-            if (index === this.activeAudioIndex) {
-                webview.setAudioMuted(false);
-            } else {
-                webview.setAudioMuted(true);
-            }
-        });
     },
 
     clearAll() {
@@ -1011,6 +937,23 @@ const app = {
             controlWindow.focus();
         } else {
             alert('Pop-up blocked! Please allow pop-ups for this app to use the Control Panel.');
+        }
+    },
+
+    // Stream Scanner
+    openScanner() {
+        const width = 1400;
+        const height = 900;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+
+        const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+        const scannerWindow = window.open('scanner.html', 'StreamScanner', features);
+
+        if (scannerWindow) {
+            scannerWindow.focus();
+        } else {
+            alert('Pop-up blocked! Please allow pop-ups for this app to use the Stream Scanner.');
         }
     },
 
