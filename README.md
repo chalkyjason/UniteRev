@@ -118,13 +118,29 @@ Double-click: standalone/index.html
 ### What is it?
 The Stream Scanner helps you find live streams across multiple platforms based on keywords you're interested in. Perfect for finding new content, monitoring topics, or discovering streamers.
 
+### Where to Find It:
+There are **TWO ways** to open the Stream Scanner:
+
+**Option 1: From Main Viewer** (Easiest!)
+1. Open `index.html` (the main stream viewer)
+2. Look at the top-right corner
+3. Click the **"🔍 Stream Scanner"** button
+4. Scanner opens in a new window!
+
+**Option 2: From Control Panel**
+1. Open the Control Panel (click "🎮 Open Control Panel")
+2. Find the Logo Header panel (top-left)
+3. Click **"🔍 Open Stream Scanner"** button
+
+**Option 3: Direct Access**
+- Just open `scanner.html` directly in your browser!
+
 ### How to Use:
-1. Open the **Control Panel**
-2. Click **"🔍 Open Stream Scanner"** button
-3. Add keywords (e.g., "protest", "gaming", "music")
-4. Configure scan interval and minimum viewers
-5. Click **"🚀 Start Scanning"**
-6. Watch live streams appear automatically!
+1. Add keywords (e.g., "protest", "gaming", "music")
+2. Press **Enter** after each keyword
+3. Configure scan interval and minimum viewers
+4. Click **"🚀 Start Scanning"**
+5. Watch live streams appear automatically!
 
 ### Supported Platforms:
 - **🟣 Twitch** - Live gaming and IRL streams
@@ -140,12 +156,25 @@ The Stream Scanner helps you find live streams across multiple platforms based o
 ✅ **Live status badges** - See which streams are currently live
 ✅ **One-click watch** - Open streams directly in new tab
 
-### YouTube Authentication (Optional):
-For real YouTube data instead of demo data:
-1. Get a Google OAuth Client ID or API Key
-2. Click **⚙️ Configure** on YouTube plugin
-3. Sign in with Google or enter API key
-4. Scan for real live streams!
+### YouTube & Twitch Authentication:
+
+**For Scanner (Finding Streams):**
+- **YouTube**: Click **⚙️ Configure** on YouTube plugin
+  - Option 1: Sign in with Google OAuth (recommended)
+  - Option 2: Enter API Key for basic access
+  - Get credentials from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+- **Twitch**: Click **⚙️ Configure** on Twitch plugin
+  - Enter Client ID from [Twitch Developer Console](https://dev.twitch.tv/console)
+
+**For Control Panel (Chat Monitoring):**
+- **YouTube Chat**: Click "Login YouTube" button
+  - Provide OAuth Client ID (same as scanner)
+  - Enter live video URL to monitor
+  - Real-time chat messages appear in unified feed
+- **Twitch Chat**: Click "Login Twitch" button
+  - Get OAuth token from [TwitchApps TMI](https://twitchapps.com/tmi/)
+  - Enter channels to monitor (comma-separated)
+  - Real-time chat messages appear in unified feed
 
 **No installation required - works instantly!**
 

@@ -920,6 +920,23 @@ const app = {
         }
     },
 
+    // Stream Scanner
+    openScanner() {
+        const width = 1400;
+        const height = 900;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+
+        const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+        const scannerWindow = window.open('scanner.html', 'StreamScanner', features);
+
+        if (scannerWindow) {
+            scannerWindow.focus();
+        } else {
+            alert('Pop-up blocked! Please allow pop-ups for this app to use the Stream Scanner.');
+        }
+    },
+
     // Modal
     openModal() {
         this.selectedSlot = null;
