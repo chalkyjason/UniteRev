@@ -21,15 +21,25 @@ const app = {
     },
 
     // Initialize drag-and-drop
-    initSortable() {
+    initSortable(retryCount = 0) {
         const grid = document.getElementById('streamGrid');
         if (this.sortableInstance) {
             this.sortableInstance.destroy();
         }
 
-        // Wait for Sortable library to load
+        // Wait for Sortable library to load with retry limit
         if (typeof Sortable === 'undefined') {
-            setTimeout(() => this.initSortable(), 100);
+            if (retryCount < 50) {  // Max 5 seconds (50 * 100ms)
+                setTimeout(() => this.initSortable(retryCount + 1), 100);
+            } else {
+                console.error('Failed to load Sortable library after 5 seconds');
+                // Show user-friendly message
+                const notice = document.createElement('div');
+                notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #FEE2E2; color: #991B1B; padding: 12px 20px; border-radius: 8px; border: 2px solid #DC2626; z-index: 10000;';
+                notice.textContent = 'Drag-and-drop disabled: Library failed to load';
+                document.body.appendChild(notice);
+                setTimeout(() => notice.remove(), 5000);
+            }
             return;
         }
 
@@ -788,6 +798,36 @@ const app = {
 
         if (!name || !url) {
             alert('Please enter both name and URL');
+            return;
+        }
+
+        // Validate name length
+        if (name.length > 50) {
+            alert('Stream name too long (maximum 50 characters)');
+            return;
+        }
+
+        // Validate URL format
+        try {
+            const urlObj = new URL(url);
+
+            // Check protocol
+            if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                alert('Invalid URL protocol. Please use HTTP or HTTPS URLs.');
+                return;
+            }
+
+            // Warn if using potentially unsupported domains (optional)
+            const hostname = urlObj.hostname.toLowerCase();
+            const supportedDomains = ['youtube.com', 'youtu.be', 'twitch.tv', 'facebook.com', 'kick.com', 'tiktok.com', 'rumble.com'];
+            const isSupported = supportedDomains.some(domain => hostname.includes(domain));
+
+            if (!isSupported) {
+                const proceed = confirm(`Warning: "${hostname}" may not support embedding. Continue anyway?`);
+                if (!proceed) return;
+            }
+        } catch (error) {
+            alert('Invalid URL format. Please enter a valid URL (e.g., https://twitch.tv/channel)');
             return;
         }
 
