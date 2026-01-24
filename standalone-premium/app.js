@@ -38,6 +38,10 @@ const app = {
     selectedOverlayId: null,
     draggingOverlay: null,
 
+    // Transition System state
+    transitionType: 'fade',
+    transitionDuration: 300,
+
     // Initialize
     init() {
         try {
@@ -128,6 +132,8 @@ const app = {
             localStorage.setItem('multistream_scenes', JSON.stringify(this.scenes));
             localStorage.setItem('multistream_active_scene', this.activeSceneId || '');
             localStorage.setItem('multistream_overlays', JSON.stringify(this.overlays));
+            localStorage.setItem('multistream_transition_type', this.transitionType);
+            localStorage.setItem('multistream_transition_duration', this.transitionDuration);
         } catch (error) {
             if (error.name === 'QuotaExceededError') {
                 console.error('Storage quota exceeded. Please clear some saved streams.');
@@ -162,6 +168,10 @@ const app = {
 
             // Load overlays
             this.overlays = JSON.parse(localStorage.getItem('multistream_overlays') || '[]');
+
+            // Load transition settings
+            this.transitionType = localStorage.getItem('multistream_transition_type') || 'fade';
+            this.transitionDuration = parseInt(localStorage.getItem('multistream_transition_duration') || '300');
         } catch (error) {
             console.error('Failed to load state:', error);
             // Use defaults
@@ -1673,6 +1683,7 @@ const app = {
             panel.classList.add('open');
             toggle.classList.add('open');
             this.renderSceneList();
+            this.initializeTransitionControls();
         } else {
             panel.classList.remove('open');
             toggle.classList.remove('open');
@@ -1781,10 +1792,16 @@ const app = {
         // Start transition
         this.sceneTransitioning = true;
         const transition = document.getElementById('sceneTransition');
+
+        // Apply transition type and duration
+        transition.className = 'scene-transition ' + this.transitionType;
+        transition.style.setProperty('--transition-duration', this.transitionDuration + 'ms');
+
+        // Trigger transition
         transition.classList.add('active');
 
-        // Wait for transition
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Wait for transition (half duration for fade in)
+        await new Promise(resolve => setTimeout(resolve, this.transitionDuration / 2));
 
         // Apply scene
         this.gridLayout = scene.layout;
@@ -1804,15 +1821,15 @@ const app = {
             this.renderAudioChannels();
         }
 
-        // End transition
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // End transition (wait for second half)
+        await new Promise(resolve => setTimeout(resolve, this.transitionDuration / 2));
         transition.classList.remove('active');
         this.sceneTransitioning = false;
 
         // Update scene list
         this.renderSceneList();
 
-        console.log('Scene loaded:', scene.name);
+        console.log('Scene loaded:', scene.name, 'with transition:', this.transitionType);
     },
 
     deleteScene(sceneId) {
@@ -2226,6 +2243,48 @@ const app = {
                 const icon = document.getElementById('fullscreenIcon');
                 if (icon) icon.textContent = '⛶';
             });
+        }
+    },
+
+    // ============================================================================
+    // TRANSITION SYSTEM
+    // ============================================================================
+
+    setTransitionType(type) {
+        this.transitionType = type;
+        this.saveState();
+        console.log('Transition type set to:', type);
+    },
+
+    setTransitionDuration(duration) {
+        this.transitionDuration = parseInt(duration);
+
+        // Update label
+        const label = document.getElementById('transitionDurationLabel');
+        if (label) {
+            label.textContent = duration + 'ms';
+        }
+
+        this.saveState();
+        console.log('Transition duration set to:', duration + 'ms');
+    },
+
+    initializeTransitionControls() {
+        // Set initial values from loaded state
+        const typeSelect = document.getElementById('transitionType');
+        const durationSlider = document.getElementById('transitionDuration');
+        const durationLabel = document.getElementById('transitionDurationLabel');
+
+        if (typeSelect) {
+            typeSelect.value = this.transitionType;
+        }
+
+        if (durationSlider) {
+            durationSlider.value = this.transitionDuration;
+        }
+
+        if (durationLabel) {
+            durationLabel.textContent = this.transitionDuration + 'ms';
         }
     }
 };
