@@ -88,6 +88,77 @@
             background: #475569;
         }
 
+        .btn-record {
+            background: #EF4444;
+            color: white;
+            position: relative;
+        }
+
+        .btn-record:hover {
+            background: #DC2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-record.recording {
+            background: #DC2626;
+            animation: recordPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        .btn-stop-record {
+            background: #DC2626;
+            color: white;
+        }
+
+        .btn-stop-record:hover {
+            background: #B91C1C;
+        }
+
+        /* Recording Indicator */
+        .recording-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: recordBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes recordBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .recording-timer {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
         /* Grid Layout Selector */
         .layout-selector {
             display: flex;
@@ -178,71 +249,6 @@
             width: 100%;
             height: 100%;
             border: none;
-        }
-
-        /* Webview Container and Navigation */
-        .webview-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .webview-nav {
-            display: flex;
-            gap: 4px;
-            padding: 4px;
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid #334155;
-            flex-shrink: 0;
-            z-index: 10;
-        }
-
-        .nav-btn {
-            padding: 4px 8px;
-            background: rgba(51, 65, 85, 0.8);
-            border: 1px solid #475569;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: rgba(71, 85, 105, 0.9);
-            border-color: #64748b;
-        }
-
-        .nav-btn:active {
-            transform: scale(0.95);
-        }
-
-        .webview-url {
-            flex: 1;
-            padding: 4px 8px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #475569;
-            border-radius: 4px;
-            color: white;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .webview-url:focus {
-            outline: none;
-            border-color: #3B82F6;
-            background: rgba(30, 41, 59, 0.95);
-        }
-
-        .webview-container webview {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-        }
-
-        webview.loading {
-            opacity: 0.7;
         }
 
         /* Stream Overlay */
@@ -730,6 +736,12 @@
                     <span style="font-size: 24px; font-weight: 700;">AntifaTimes Stream Manager</span>
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="app.openScanner()" title="Find live streams by keywords across platforms">
+                        🔍 Stream Scanner
+                    </button>
+                    <button class="btn btn-record" id="recordBtn" onclick="app.toggleRecording()" title="Start recording the grid" aria-label="Start recording">
+                        ⏺️ Record
+                    </button>
                     <button class="btn btn-primary" onclick="app.openControlPanel()" title="Open control panel to manage streams on second monitor">
                         🎮 Open Control Panel
                     </button>
@@ -791,6 +803,13 @@
                 <div id="savedStreamersList"></div>
             </div>
         </div>
+    </div>
+
+    <!-- Recording Indicator -->
+    <div class="recording-indicator" id="recordingIndicator">
+        <div class="recording-dot"></div>
+        <div class="recording-timer" id="recordingTimer">00:00</div>
+        <div>Recording...</div>
     </div>
 
     <!-- SortableJS for drag-and-drop -->

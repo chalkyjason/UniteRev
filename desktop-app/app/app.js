@@ -10,6 +10,13 @@ const app = {
     selectedSlot: null,
     sortableInstance: null,
 
+    // Recording state
+    isRecording: false,
+    mediaRecorder: null,
+    recordedChunks: [],
+    recordingStartTime: null,
+    recordingTimerInterval: null,
+
     // Initialize
     init() {
         try {
@@ -1074,6 +1081,245 @@ const app = {
                 setTimeout(() => error.remove(), 300);
             }
         }, 5000);
+    },
+
+    // ===== RECORDING FUNCTIONALITY =====
+
+    toggleRecording() {
+        if (this.isRecording) {
+            this.stopRecording();
+        } else {
+            this.startRecording();
+        }
+    },
+
+    async startRecording() {
+        try {
+            // Check if there are any streams to record
+            const hasStreams = this.gridStreams.some(stream => stream !== null);
+            if (!hasStreams) {
+                alert('Please add at least one stream before recording.');
+                return;
+            }
+
+            // Use Screen Capture API - prompts user to select what to record
+            const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    cursor: 'always',
+                    displaySurface: 'browser'
+                },
+                audio: true,
+                preferCurrentTab: true
+            });
+
+            // Check if user cancelled
+            if (!displayStream) {
+                return;
+            }
+
+            // Initialize MediaRecorder with best available codec
+            let options = { mimeType: 'video/webm;codecs=vp9,opus' };
+
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options = { mimeType: 'video/webm;codecs=vp8,opus' };
+            }
+
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options = { mimeType: 'video/webm' };
+            }
+
+            this.mediaRecorder = new MediaRecorder(displayStream, options);
+            this.recordedChunks = [];
+
+            // Handle data available
+            this.mediaRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    this.recordedChunks.push(event.data);
+                }
+            };
+
+            // Handle recording stop
+            this.mediaRecorder.onstop = () => {
+                this.downloadRecording();
+                // Stop all tracks
+                displayStream.getTracks().forEach(track => track.stop());
+            };
+
+            // Handle errors
+            this.mediaRecorder.onerror = (event) => {
+                console.error('MediaRecorder error:', event.error);
+                this.showError('Recording error: ' + event.error.message);
+                this.stopRecording();
+            };
+
+            // Handle user stopping screen share manually
+            displayStream.getVideoTracks()[0].addEventListener('ended', () => {
+                if (this.isRecording) {
+                    this.stopRecording();
+                }
+            });
+
+            // Start recording
+            this.mediaRecorder.start(1000); // Collect data every second
+            this.isRecording = true;
+            this.recordingStartTime = Date.now();
+
+            // Update UI
+            this.updateRecordingUI();
+            this.startRecordingTimer();
+
+            console.log('Recording started with mime type:', options.mimeType);
+
+        } catch (error) {
+            console.error('Failed to start recording:', error);
+
+            if (error.name === 'NotAllowedError') {
+                this.showError('Screen recording permission denied. Please allow screen sharing.');
+            } else if (error.name === 'NotSupportedError') {
+                this.showError('Screen recording not supported. Try Chrome or Edge.');
+            } else {
+                this.showError('Failed to start recording: ' + error.message);
+            }
+
+            this.isRecording = false;
+            this.updateRecordingUI();
+        }
+    },
+
+    stopRecording() {
+        if (!this.mediaRecorder || !this.isRecording) return;
+
+        try {
+            // Stop the recorder
+            if (this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+            }
+
+            // Stop all tracks
+            if (this.mediaRecorder.stream) {
+                this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+
+            this.isRecording = false;
+            this.stopRecordingTimer();
+            this.updateRecordingUI();
+
+            console.log('Recording stopped');
+
+        } catch (error) {
+            console.error('Error stopping recording:', error);
+            this.showError('Error stopping recording: ' + error.message);
+        }
+    },
+
+    downloadRecording() {
+        if (this.recordedChunks.length === 0) {
+            this.showError('No recording data available');
+            return;
+        }
+
+        try {
+            // Create blob from recorded chunks
+            const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('.')[0];
+            a.download = `uniterev-recording-${timestamp}.webm`;
+
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+
+            // Show success message
+            const success = document.createElement('div');
+            success.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #D1FAE5;
+                color: #065F46;
+                padding: 16px 24px;
+                border-radius: 8px;
+                border: 2px solid: #10B981;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-weight: 600;
+            `;
+            success.textContent = '✅ Recording saved!';
+            document.body.appendChild(success);
+            setTimeout(() => success.remove(), 3000);
+
+            console.log('Recording downloaded:', a.download);
+
+        } catch (error) {
+            console.error('Error downloading recording:', error);
+            this.showError('Failed to download recording: ' + error.message);
+        }
+    },
+
+    updateRecordingUI() {
+        const recordBtn = document.getElementById('recordBtn');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+
+        if (this.isRecording) {
+            // Update button
+            recordBtn.textContent = '⏹️ Stop';
+            recordBtn.classList.add('recording');
+            recordBtn.classList.remove('btn-record');
+            recordBtn.classList.add('btn-stop-record');
+            recordBtn.title = 'Stop recording';
+            recordBtn.setAttribute('aria-label', 'Stop recording');
+
+            // Show indicator
+            recordingIndicator.classList.add('active');
+        } else {
+            // Reset button
+            recordBtn.textContent = '⏺️ Record';
+            recordBtn.classList.remove('recording', 'btn-stop-record');
+            recordBtn.classList.add('btn-record');
+            recordBtn.title = 'Start recording the grid';
+            recordBtn.setAttribute('aria-label', 'Start recording');
+
+            // Hide indicator
+            recordingIndicator.classList.remove('active');
+        }
+    },
+
+    startRecordingTimer() {
+        const timerElement = document.getElementById('recordingTimer');
+
+        this.recordingTimerInterval = setInterval(() => {
+            const elapsed = Date.now() - this.recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+
+            const timeString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+            timerElement.textContent = timeString;
+        }, 1000);
+    },
+
+    stopRecordingTimer() {
+        if (this.recordingTimerInterval) {
+            clearInterval(this.recordingTimerInterval);
+            this.recordingTimerInterval = null;
+        }
+
+        const timerElement = document.getElementById('recordingTimer');
+        if (timerElement) {
+            timerElement.textContent = '00:00';
+        }
     }
 };
 
