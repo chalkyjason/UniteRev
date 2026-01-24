@@ -724,6 +724,249 @@
                 transform: scale(1.2);
             }
         }
+
+        /* Audio Mixer Panel */
+        .audio-mixer-panel {
+            position: fixed;
+            bottom: 0;
+            right: -400px;
+            width: 400px;
+            height: calc(100vh - 200px);
+            background: #1E293B;
+            border-left: 2px solid #334155;
+            border-top: 2px solid #334155;
+            border-top-left-radius: 12px;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+            transition: right 0.3s ease;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .audio-mixer-panel.open {
+            right: 0;
+        }
+
+        .audio-mixer-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0F172A;
+            border-top-left-radius: 12px;
+        }
+
+        .audio-mixer-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-mixer-close {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .audio-mixer-close:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .audio-mixer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .audio-mixer-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #334155;
+            background: #0F172A;
+        }
+
+        .audio-channel {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid #334155;
+        }
+
+        .audio-channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .audio-channel-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-channel-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .audio-btn-icon {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #94A3B8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .audio-btn-icon:hover {
+            background: #475569;
+            color: white;
+        }
+
+        .audio-btn-icon.active {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .audio-btn-icon.muted {
+            background: #EF4444;
+            color: white;
+        }
+
+        .audio-volume-control {
+            margin-bottom: 12px;
+        }
+
+        .audio-volume-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #94A3B8;
+        }
+
+        .audio-volume-value {
+            font-weight: 600;
+            color: #3B82F6;
+        }
+
+        .audio-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .audio-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .audio-slider::-webkit-slider-thumb:hover {
+            background: #2563EB;
+            transform: scale(1.2);
+        }
+
+        .audio-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .audio-slider::-moz-range-thumb:hover {
+            background: #2563EB;
+            transform: scale(1.2);
+        }
+
+        .audio-meter {
+            height: 8px;
+            background: #0F172A;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .audio-meter-fill {
+            height: 100%;
+            background: linear-gradient(to right, #10B981, #FBBF24, #EF4444);
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+
+        .master-volume {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 16px;
+            border: 2px solid #3B82F6;
+        }
+
+        .master-volume-header {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #3B82F6;
+        }
+
+        .audio-mixer-toggle {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #3B82F6;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            z-index: 9998;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-mixer-toggle:hover {
+            background: #2563EB;
+            transform: scale(1.1);
+        }
+
+        .audio-mixer-toggle.open {
+            right: 420px;
+        }
     </style>
 </head>
 <body>
@@ -811,6 +1054,48 @@
         <div class="recording-timer" id="recordingTimer">00:00</div>
         <div>Recording...</div>
     </div>
+
+    <!-- Audio Mixer Panel -->
+    <div class="audio-mixer-panel" id="audioMixerPanel">
+        <div class="audio-mixer-header">
+            <div class="audio-mixer-title">
+                🎚️ Audio Mixer
+            </div>
+            <button class="audio-mixer-close" onclick="app.toggleAudioMixer()" aria-label="Close audio mixer">×</button>
+        </div>
+
+        <div class="audio-mixer-body" id="audioMixerBody">
+            <!-- Audio channels will be dynamically added here -->
+            <div id="audioChannels"></div>
+        </div>
+
+        <div class="audio-mixer-footer">
+            <div class="master-volume">
+                <div class="master-volume-header">Master Volume</div>
+                <div class="audio-volume-control">
+                    <div class="audio-volume-label">
+                        <span>Output</span>
+                        <span class="audio-volume-value" id="masterVolumeValue">100%</span>
+                    </div>
+                    <input type="range" class="audio-slider" id="masterVolumeSlider"
+                           min="0" max="100" value="100"
+                           oninput="app.setMasterVolume(this.value)"
+                           aria-label="Master volume">
+                    <div class="audio-meter">
+                        <div class="audio-meter-fill" id="masterMeter"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Mixer Toggle Button -->
+    <button class="audio-mixer-toggle" id="audioMixerToggle"
+            onclick="app.toggleAudioMixer()"
+            title="Open Audio Mixer"
+            aria-label="Open audio mixer">
+        🎚️
+    </button>
 
     <!-- SortableJS for drag-and-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>

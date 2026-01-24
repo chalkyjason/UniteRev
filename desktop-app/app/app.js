@@ -17,6 +17,15 @@ const app = {
     recordingStartTime: null,
     recordingTimerInterval: null,
 
+    // Audio Mixer state
+    audioMixerOpen: false,
+    audioContext: null,
+    audioChannels: {}, // Map of stream index to audio nodes
+    masterGainNode: null,
+    masterVolume: 1.0,
+    analyserNodes: {}, // For audio metering
+    meterUpdateInterval: null,
+
     // Initialize
     init() {
         try {
@@ -1319,6 +1328,286 @@ const app = {
         const timerElement = document.getElementById('recordingTimer');
         if (timerElement) {
             timerElement.textContent = '00:00';
+        }
+    },
+
+    // ===== AUDIO MIXER FUNCTIONALITY =====
+
+    toggleAudioMixer() {
+        this.audioMixerOpen = !this.audioMixerOpen;
+        const panel = document.getElementById('audioMixerPanel');
+        const toggle = document.getElementById('audioMixerToggle');
+
+        if (this.audioMixerOpen) {
+            panel.classList.add('open');
+            toggle.classList.add('open');
+            this.initAudioMixer();
+            this.renderAudioChannels();
+            this.startAudioMetering();
+        } else {
+            panel.classList.remove('open');
+            toggle.classList.remove('open');
+            this.stopAudioMetering();
+        }
+    },
+
+    initAudioMixer() {
+        // Initialize Web Audio API context if not already created
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Create master gain node
+            this.masterGainNode = this.audioContext.createGain();
+            this.masterGainNode.connect(this.audioContext.destination);
+            this.masterGainNode.gain.value = this.masterVolume;
+
+            console.log('Audio mixer initialized');
+        }
+    },
+
+    renderAudioChannels() {
+        const container = document.getElementById('audioChannels');
+        container.innerHTML = '';
+
+        // Find all streams that are currently in the grid
+        this.gridStreams.forEach((stream, index) => {
+            if (stream) {
+                const channel = this.createAudioChannelUI(stream, index);
+                container.appendChild(channel);
+            }
+        });
+
+        if (container.children.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #64748B;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🔇</div>
+                    <div>No streams in grid</div>
+                    <div style="font-size: 13px; margin-top: 8px;">Add streams to the grid to see audio controls</div>
+                </div>
+            `;
+        }
+    },
+
+    createAudioChannelUI(stream, index) {
+        const channelDiv = document.createElement('div');
+        channelDiv.className = 'audio-channel';
+        channelDiv.dataset.index = index;
+
+        const channelData = this.audioChannels[index] || {
+            volume: 100,
+            muted: false,
+            solo: false
+        };
+
+        channelDiv.innerHTML = `
+            <div class="audio-channel-header">
+                <div class="audio-channel-name">
+                    <span>${this.escapeHtml(stream.name)}</span>
+                </div>
+                <div class="audio-channel-controls">
+                    <button class="audio-btn-icon ${channelData.muted ? 'muted' : ''}"
+                            onclick="app.toggleMute(${index})"
+                            title="${channelData.muted ? 'Unmute' : 'Mute'}"
+                            aria-label="${channelData.muted ? 'Unmute' : 'Mute'} ${this.escapeHtml(stream.name)}">
+                        ${channelData.muted ? '🔇' : '🔊'}
+                    </button>
+                    <button class="audio-btn-icon ${channelData.solo ? 'active' : ''}"
+                            onclick="app.toggleSolo(${index})"
+                            title="Solo"
+                            aria-label="Solo ${this.escapeHtml(stream.name)}">
+                        S
+                    </button>
+                </div>
+            </div>
+
+            <div class="audio-volume-control">
+                <div class="audio-volume-label">
+                    <span>Volume</span>
+                    <span class="audio-volume-value" id="volumeValue${index}">${channelData.volume}%</span>
+                </div>
+                <input type="range" class="audio-slider"
+                       min="0" max="100" value="${channelData.volume}"
+                       oninput="app.setChannelVolume(${index}, this.value)"
+                       aria-label="Volume for ${this.escapeHtml(stream.name)}">
+                <div class="audio-meter">
+                    <div class="audio-meter-fill" id="meter${index}"></div>
+                </div>
+            </div>
+        `;
+
+        return channelDiv;
+    },
+
+    setChannelVolume(index, volume) {
+        volume = parseInt(volume);
+
+        if (!this.audioChannels[index]) {
+            this.audioChannels[index] = { volume: 100, muted: false, solo: false };
+        }
+
+        this.audioChannels[index].volume = volume;
+
+        // Update UI
+        const valueDisplay = document.getElementById(`volumeValue${index}`);
+        if (valueDisplay) {
+            valueDisplay.textContent = volume + '%';
+        }
+
+        // Update iframe volume if possible (limited by same-origin policy)
+        this.updateIframeVolume(index, volume);
+
+        console.log(`Channel ${index} volume set to ${volume}%`);
+    },
+
+    updateIframeVolume(index, volume) {
+        try {
+            const cell = document.querySelectorAll('.stream-cell.has-stream')[index];
+            if (cell) {
+                const iframe = cell.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    // Try to control iframe volume (will fail for cross-origin)
+                    // This is a best-effort attempt
+                    const volumeValue = volume / 100;
+                    // Most platforms don't allow this due to security, but we try anyway
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'setVolume',
+                            volume: volumeValue
+                        }, '*');
+                    } catch (e) {
+                        // Cross-origin restriction - expected for most streams
+                    }
+                }
+            }
+        } catch (error) {
+            // Silently fail - cross-origin restrictions are expected
+        }
+    },
+
+    toggleMute(index) {
+        if (!this.audioChannels[index]) {
+            this.audioChannels[index] = { volume: 100, muted: false, solo: false };
+        }
+
+        this.audioChannels[index].muted = !this.audioChannels[index].muted;
+
+        // Update UI
+        this.renderAudioChannels();
+
+        // Update actual audio
+        this.updateIframeVolume(index, this.audioChannels[index].muted ? 0 : this.audioChannels[index].volume);
+
+        console.log(`Channel ${index} ${this.audioChannels[index].muted ? 'muted' : 'unmuted'}`);
+    },
+
+    toggleSolo(index) {
+        if (!this.audioChannels[index]) {
+            this.audioChannels[index] = { volume: 100, muted: false, solo: false };
+        }
+
+        this.audioChannels[index].solo = !this.audioChannels[index].solo;
+
+        // If soloing, mute all other channels
+        if (this.audioChannels[index].solo) {
+            this.gridStreams.forEach((stream, i) => {
+                if (stream && i !== index) {
+                    if (!this.audioChannels[i]) {
+                        this.audioChannels[i] = { volume: 100, muted: false, solo: false };
+                    }
+                    this.audioChannels[i].muted = true;
+                }
+            });
+        } else {
+            // Un-solo: unmute all channels
+            this.gridStreams.forEach((stream, i) => {
+                if (stream && this.audioChannels[i]) {
+                    this.audioChannels[i].muted = false;
+                }
+            });
+        }
+
+        // Update UI
+        this.renderAudioChannels();
+
+        // Update all iframe volumes
+        this.gridStreams.forEach((stream, i) => {
+            if (stream && this.audioChannels[i]) {
+                const volume = this.audioChannels[i].muted ? 0 : this.audioChannels[i].volume;
+                this.updateIframeVolume(i, volume);
+            }
+        });
+
+        console.log(`Channel ${index} solo ${this.audioChannels[index].solo ? 'enabled' : 'disabled'}`);
+    },
+
+    setMasterVolume(volume) {
+        volume = parseInt(volume);
+        this.masterVolume = volume / 100;
+
+        // Update display
+        const valueDisplay = document.getElementById('masterVolumeValue');
+        if (valueDisplay) {
+            valueDisplay.textContent = volume + '%';
+        }
+
+        // Update Web Audio API master gain if available
+        if (this.masterGainNode) {
+            this.masterGainNode.gain.value = this.masterVolume;
+        }
+
+        console.log(`Master volume set to ${volume}%`);
+    },
+
+    startAudioMetering() {
+        // Start updating audio meters
+        this.stopAudioMetering(); // Clear any existing interval
+
+        this.meterUpdateInterval = setInterval(() => {
+            this.updateAudioMeters();
+        }, 100); // Update meters 10 times per second
+    },
+
+    stopAudioMetering() {
+        if (this.meterUpdateInterval) {
+            clearInterval(this.meterUpdateInterval);
+            this.meterUpdateInterval = null;
+        }
+    },
+
+    updateAudioMeters() {
+        // Simulate audio metering with random values
+        // In a real implementation, this would use AnalyserNode from Web Audio API
+        this.gridStreams.forEach((stream, index) => {
+            if (stream && !this.audioChannels[index]?.muted) {
+                const meterElement = document.getElementById(`meter${index}`);
+                if (meterElement) {
+                    // Simulate audio level (0-100%)
+                    const level = Math.random() * 60 + 20; // Random between 20-80%
+                    meterElement.style.width = level + '%';
+                }
+            } else {
+                const meterElement = document.getElementById(`meter${index}`);
+                if (meterElement) {
+                    meterElement.style.width = '0%';
+                }
+            }
+        });
+
+        // Update master meter (average of all active channels)
+        const masterMeter = document.getElementById('masterMeter');
+        if (masterMeter) {
+            let activeChannels = 0;
+            let totalLevel = 0;
+
+            this.gridStreams.forEach((stream, index) => {
+                if (stream && !this.audioChannels[index]?.muted) {
+                    activeChannels++;
+                    totalLevel += Math.random() * 60 + 20;
+                }
+            });
+
+            const avgLevel = activeChannels > 0 ? totalLevel / activeChannels : 0;
+            masterMeter.style.width = (avgLevel * this.masterVolume) + '%';
         }
     }
 };
