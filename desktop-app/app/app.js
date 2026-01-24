@@ -26,6 +26,12 @@ const app = {
     analyserNodes: {}, // For audio metering
     meterUpdateInterval: null,
 
+    // Scene Manager state
+    sceneManagerOpen: false,
+    scenes: [],
+    activeSceneId: null,
+    sceneTransitioning: false,
+
     // Initialize
     init() {
         try {
@@ -113,6 +119,8 @@ const app = {
             localStorage.setItem('multistream_grid', JSON.stringify(this.gridStreams));
             localStorage.setItem('multistream_audio', this.activeAudioIndex);
             localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
+            localStorage.setItem('multistream_scenes', JSON.stringify(this.scenes));
+            localStorage.setItem('multistream_active_scene', this.activeSceneId || '');
         } catch (error) {
             if (error.name === 'QuotaExceededError') {
                 console.error('Storage quota exceeded. Please clear some saved streams.');
@@ -140,6 +148,10 @@ const app = {
                 const oldStreams = JSON.parse(localStorage.getItem('multistream_saved') || '[]');
                 this.savedStreamers = oldStreams.map(stream => this.convertStreamToStreamer(stream));
             }
+
+            // Load scenes
+            this.scenes = JSON.parse(localStorage.getItem('multistream_scenes') || '[]');
+            this.activeSceneId = localStorage.getItem('multistream_active_scene') || null;
         } catch (error) {
             console.error('Failed to load state:', error);
             // Use defaults
@@ -1609,6 +1621,222 @@ const app = {
             const avgLevel = activeChannels > 0 ? totalLevel / activeChannels : 0;
             masterMeter.style.width = (avgLevel * this.masterVolume) + '%';
         }
+    },
+
+    // ===== SCENE MANAGER FUNCTIONALITY =====
+
+    toggleSceneManager() {
+        this.sceneManagerOpen = !this.sceneManagerOpen;
+        const panel = document.getElementById('sceneManagerPanel');
+        const toggle = document.getElementById('sceneManagerToggle');
+
+        if (this.sceneManagerOpen) {
+            panel.classList.add('open');
+            toggle.classList.add('open');
+            this.renderSceneList();
+        } else {
+            panel.classList.remove('open');
+            toggle.classList.remove('open');
+        }
+    },
+
+    renderSceneList() {
+        const container = document.getElementById('sceneList');
+
+        if (this.scenes.length === 0) {
+            container.innerHTML = `
+                <div class="scene-empty">
+                    <div class="scene-empty-icon">🎬</div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">No scenes saved yet</div>
+                    <div style="font-size: 12px;">Save your current layout to create a scene</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        this.scenes.forEach((scene, index) => {
+            const sceneDiv = document.createElement('div');
+            sceneDiv.className = 'scene-item' + (scene.id === this.activeSceneId ? ' active' : '');
+            sceneDiv.dataset.sceneId = scene.id;
+
+            const hotkey = index < 9 ? index + 1 : '';
+
+            sceneDiv.innerHTML = `
+                <div class="scene-item-info" onclick="app.loadScene('${scene.id}')">
+                    <div class="scene-item-name">${this.escapeHtml(scene.name)}</div>
+                    <div class="scene-item-meta">
+                        <span>${scene.layout}</span>
+                        <span>${scene.streamCount} stream${scene.streamCount !== 1 ? 's' : ''}</span>
+                        ${hotkey ? `<span class="scene-item-hotkey">${hotkey}</span>` : ''}
+                    </div>
+                </div>
+                <div class="scene-item-actions">
+                    <button class="scene-btn-icon" onclick="event.stopPropagation(); app.renameScene('${scene.id}')" title="Rename scene" aria-label="Rename ${this.escapeHtml(scene.name)}">
+                        ✏️
+                    </button>
+                    <button class="scene-btn-icon" onclick="event.stopPropagation(); app.duplicateScene('${scene.id}')" title="Duplicate scene" aria-label="Duplicate ${this.escapeHtml(scene.name)}">
+                        📋
+                    </button>
+                    <button class="scene-btn-icon delete" onclick="event.stopPropagation(); app.deleteScene('${scene.id}')" title="Delete scene" aria-label="Delete ${this.escapeHtml(scene.name)}">
+                        🗑️
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(sceneDiv);
+        });
+    },
+
+    saveCurrentScene() {
+        const name = prompt('Enter scene name:', `Scene ${this.scenes.length + 1}`);
+        if (!name || !name.trim()) return;
+
+        const scene = {
+            id: 'scene-' + Date.now(),
+            name: name.trim(),
+            layout: this.gridLayout,
+            streams: JSON.parse(JSON.stringify(this.gridStreams)), // Deep copy
+            activeAudioIndex: this.activeAudioIndex,
+            audioChannels: JSON.parse(JSON.stringify(this.audioChannels)),
+            streamCount: this.gridStreams.filter(s => s !== null).length,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+
+        this.scenes.push(scene);
+        this.activeSceneId = scene.id;
+        this.saveState();
+        this.renderSceneList();
+
+        // Show success message
+        const success = document.createElement('div');
+        success.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #D1FAE5;
+            color: #065F46;
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 2px solid #10B981;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-weight: 600;
+        `;
+        success.textContent = `✅ Scene "${name}" saved!`;
+        document.body.appendChild(success);
+        setTimeout(() => success.remove(), 2000);
+
+        console.log('Scene saved:', scene);
+    },
+
+    async loadScene(sceneId) {
+        if (this.sceneTransitioning) return;
+
+        const scene = this.scenes.find(s => s.id === sceneId);
+        if (!scene) return;
+
+        // Start transition
+        this.sceneTransitioning = true;
+        const transition = document.getElementById('sceneTransition');
+        transition.classList.add('active');
+
+        // Wait for transition
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Apply scene
+        this.gridLayout = scene.layout;
+        this.gridStreams = JSON.parse(JSON.stringify(scene.streams)); // Deep copy
+        this.activeAudioIndex = scene.activeAudioIndex || null;
+        this.audioChannels = JSON.parse(JSON.stringify(scene.audioChannels || {}));
+        this.activeSceneId = scene.id;
+
+        // Update UI
+        this.render();
+        this.updateLayoutButtons();
+        this.updateAudioStatus();
+        this.saveState();
+
+        // If audio mixer is open, update it
+        if (this.audioMixerOpen) {
+            this.renderAudioChannels();
+        }
+
+        // End transition
+        await new Promise(resolve => setTimeout(resolve, 100));
+        transition.classList.remove('active');
+        this.sceneTransitioning = false;
+
+        // Update scene list
+        this.renderSceneList();
+
+        console.log('Scene loaded:', scene.name);
+    },
+
+    deleteScene(sceneId) {
+        const scene = this.scenes.find(s => s.id === sceneId);
+        if (!scene) return;
+
+        if (!confirm(`Delete scene "${scene.name}"?`)) return;
+
+        this.scenes = this.scenes.filter(s => s.id !== sceneId);
+
+        // If deleted scene was active, clear active scene
+        if (this.activeSceneId === sceneId) {
+            this.activeSceneId = null;
+        }
+
+        this.saveState();
+        this.renderSceneList();
+
+        console.log('Scene deleted:', scene.name);
+    },
+
+    renameScene(sceneId) {
+        const scene = this.scenes.find(s => s.id === sceneId);
+        if (!scene) return;
+
+        const newName = prompt('Enter new name:', scene.name);
+        if (!newName || !newName.trim()) return;
+
+        scene.name = newName.trim();
+        scene.updatedAt = Date.now();
+
+        this.saveState();
+        this.renderSceneList();
+
+        console.log('Scene renamed to:', newName);
+    },
+
+    duplicateScene(sceneId) {
+        const scene = this.scenes.find(s => s.id === sceneId);
+        if (!scene) return;
+
+        const duplicate = {
+            ...scene,
+            id: 'scene-' + Date.now(),
+            name: scene.name + ' (Copy)',
+            streams: JSON.parse(JSON.stringify(scene.streams)),
+            audioChannels: JSON.parse(JSON.stringify(scene.audioChannels || {})),
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+
+        this.scenes.push(duplicate);
+        this.saveState();
+        this.renderSceneList();
+
+        console.log('Scene duplicated:', duplicate.name);
+    },
+
+    // Load scene by hotkey (1-9)
+    loadSceneByHotkey(number) {
+        const index = number - 1;
+        if (index >= 0 && index < this.scenes.length) {
+            this.loadScene(this.scenes[index].id);
+        }
     }
 };
 
@@ -1617,12 +1845,20 @@ document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
 
-// Handle Enter key in inputs
+// Handle Enter key in inputs and scene hotkeys
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.target.classList.contains('form-input')) {
         app.addStream();
     }
     if (e.key === 'Escape') {
         app.closeModal();
+    }
+
+    // Scene hotkeys (1-9) - only when not typing in input
+    if (!e.target.classList.contains('form-input') && !e.target.isContentEditable) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 9 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            app.loadSceneByHotkey(num);
+        }
     }
 });
