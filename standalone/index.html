@@ -59,6 +59,111 @@
             gap: 12px;
         }
 
+        /* Dashboard Bar */
+        .dashboard-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0 0 0;
+            margin-top: 12px;
+            border-top: 1px solid #334155;
+            padding-top: 12px;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #94A3B8;
+        }
+
+        .stat-icon {
+            font-size: 16px;
+        }
+
+        .stat-label {
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #E2E8F0;
+            font-weight: 600;
+            background: #0F172A;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .dashboard-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .control-label {
+            color: #64748B;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .btn-layout-preset {
+            padding: 6px 12px;
+            background: #334155;
+            color: #E2E8F0;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-layout-preset:hover {
+            background: #475569;
+            border-color: #64748B;
+            transform: translateY(-1px);
+        }
+
+        .btn-layout-preset.active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: white;
+        }
+
+        .btn-fullscreen {
+            padding: 6px 14px;
+            background: #334155;
+            color: #E2E8F0;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-fullscreen:hover {
+            background: #475569;
+            border-color: #64748B;
+        }
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -1527,6 +1632,47 @@
                     </button>
                     <button class="btn btn-primary" onclick="app.openControlPanel()" title="Open control panel to manage streams on second monitor">
                         🎮 Open Control Panel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats & Controls -->
+            <div class="dashboard-bar">
+                <div class="dashboard-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-label">Streams:</span>
+                        <span class="stat-value" id="streamCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🔊</span>
+                        <span class="stat-label">Audio:</span>
+                        <span class="stat-value" id="audioSource">None</span>
+                    </div>
+                    <div class="stat-item" id="recordingStatus" style="display: none;">
+                        <span class="stat-icon">⏺️</span>
+                        <span class="stat-label">Recording:</span>
+                        <span class="stat-value" id="recordingDuration">00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🎬</span>
+                        <span class="stat-label">Scene:</span>
+                        <span class="stat-value" id="activeScene">None</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-controls">
+                    <div class="control-group">
+                        <span class="control-label">Quick Layouts:</span>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('1x1')" title="Single stream">1x1</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('2x2')" title="Four streams">2x2</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('3x3')" title="Nine streams">3x3</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('4x4')" title="Sixteen streams">4x4</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('2x1')" title="Side by side">2x1</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('1x2')" title="Top and bottom">1x2</button>
+                    </div>
+                    <button class="btn-fullscreen" onclick="app.toggleFullscreen()" title="Toggle fullscreen mode">
+                        <span id="fullscreenIcon">⛶</span> Fullscreen
                     </button>
                 </div>
             </div>

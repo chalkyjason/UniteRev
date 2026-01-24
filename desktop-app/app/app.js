@@ -584,6 +584,9 @@ const app = {
 
             // Render overlays on top of the grid
             setTimeout(() => this.renderOverlays(), 100);
+
+            // Update dashboard stats
+            this.updateDashboardStats();
         } catch (error) {
             console.error('Render error:', error);
             this.showError('Failed to render streams. Please refresh the page.');
@@ -790,6 +793,7 @@ const app = {
         }
         this.updateAudioIndicators();
         this.updateAudioStatus();
+        this.updateDashboardStats();
         this.saveState();
     },
 
@@ -1305,6 +1309,7 @@ const app = {
     updateRecordingUI() {
         const recordBtn = document.getElementById('recordBtn');
         const recordingIndicator = document.getElementById('recordingIndicator');
+        const recordingStatus = document.getElementById('recordingStatus');
 
         if (this.isRecording) {
             // Update button
@@ -1317,6 +1322,11 @@ const app = {
 
             // Show indicator
             recordingIndicator.classList.add('active');
+
+            // Show dashboard recording status
+            if (recordingStatus) {
+                recordingStatus.style.display = 'flex';
+            }
         } else {
             // Reset button
             recordBtn.textContent = '⏺️ Record';
@@ -1327,11 +1337,17 @@ const app = {
 
             // Hide indicator
             recordingIndicator.classList.remove('active');
+
+            // Hide dashboard recording status
+            if (recordingStatus) {
+                recordingStatus.style.display = 'none';
+            }
         }
     },
 
     startRecordingTimer() {
         const timerElement = document.getElementById('recordingTimer');
+        const dashboardDuration = document.getElementById('recordingDuration');
 
         this.recordingTimerInterval = setInterval(() => {
             const elapsed = Date.now() - this.recordingStartTime;
@@ -1341,6 +1357,11 @@ const app = {
 
             const timeString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
             timerElement.textContent = timeString;
+
+            // Update dashboard duration
+            if (dashboardDuration) {
+                dashboardDuration.textContent = timeString;
+            }
         }, 1000);
     },
 
@@ -1351,8 +1372,13 @@ const app = {
         }
 
         const timerElement = document.getElementById('recordingTimer');
+        const dashboardDuration = document.getElementById('recordingDuration');
+
         if (timerElement) {
             timerElement.textContent = '00:00';
+        }
+        if (dashboardDuration) {
+            dashboardDuration.textContent = '00:00';
         }
     },
 
@@ -1722,6 +1748,7 @@ const app = {
         this.activeSceneId = scene.id;
         this.saveState();
         this.renderSceneList();
+        this.updateDashboardStats();
 
         // Show success message
         const success = document.createElement('div');
@@ -1803,6 +1830,7 @@ const app = {
 
         this.saveState();
         this.renderSceneList();
+        this.updateDashboardStats();
 
         console.log('Scene deleted:', scene.name);
     },
@@ -2122,6 +2150,83 @@ const app = {
 
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
+    },
+
+    // ============================================================================
+    // ENHANCED MULTIVIEW DASHBOARD
+    // ============================================================================
+
+    updateDashboardStats() {
+        // Update stream count
+        const activeStreams = this.gridStreams.filter(s => s !== null).length;
+        const streamCountEl = document.getElementById('streamCount');
+        if (streamCountEl) {
+            streamCountEl.textContent = activeStreams;
+        }
+
+        // Update audio source
+        const audioSourceEl = document.getElementById('audioSource');
+        if (audioSourceEl) {
+            if (this.activeAudioIndex !== null && this.activeAudioIndex >= 0) {
+                const audioStream = this.gridStreams[this.activeAudioIndex];
+                if (audioStream) {
+                    audioSourceEl.textContent = audioStream.name || `Stream ${this.activeAudioIndex + 1}`;
+                } else {
+                    audioSourceEl.textContent = 'None';
+                }
+            } else {
+                audioSourceEl.textContent = 'None';
+            }
+        }
+
+        // Update active scene
+        const activeSceneEl = document.getElementById('activeScene');
+        if (activeSceneEl) {
+            if (this.activeSceneId) {
+                const scene = this.scenes.find(s => s.id === this.activeSceneId);
+                activeSceneEl.textContent = scene ? scene.name : 'None';
+            } else {
+                activeSceneEl.textContent = 'None';
+            }
+        }
+
+        // Update recording status (handled separately in updateRecordingUI)
+
+        // Update layout preset active states
+        this.updateLayoutPresetButtons();
+    },
+
+    updateLayoutPresetButtons() {
+        const buttons = document.querySelectorAll('.btn-layout-preset');
+        buttons.forEach(btn => {
+            const layout = btn.textContent.trim();
+            if (layout === this.gridLayout) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    },
+
+    setLayoutPreset(layout) {
+        this.setLayout(layout);
+        this.updateDashboardStats();
+    },
+
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => {
+                const icon = document.getElementById('fullscreenIcon');
+                if (icon) icon.textContent = '⛶';
+            }).catch(err => {
+                console.error('Failed to enter fullscreen:', err);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                const icon = document.getElementById('fullscreenIcon');
+                if (icon) icon.textContent = '⛶';
+            });
+        }
     }
 };
 
