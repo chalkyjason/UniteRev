@@ -32,6 +32,12 @@ const app = {
     activeSceneId: null,
     sceneTransitioning: false,
 
+    // Overlay System state
+    overlayManagerOpen: false,
+    overlays: [],
+    selectedOverlayId: null,
+    draggingOverlay: null,
+
     // Initialize
     init() {
         try {
@@ -121,6 +127,7 @@ const app = {
             localStorage.setItem('multistream_streamers', JSON.stringify(this.savedStreamers));
             localStorage.setItem('multistream_scenes', JSON.stringify(this.scenes));
             localStorage.setItem('multistream_active_scene', this.activeSceneId || '');
+            localStorage.setItem('multistream_overlays', JSON.stringify(this.overlays));
         } catch (error) {
             if (error.name === 'QuotaExceededError') {
                 console.error('Storage quota exceeded. Please clear some saved streams.');
@@ -152,6 +159,9 @@ const app = {
             // Load scenes
             this.scenes = JSON.parse(localStorage.getItem('multistream_scenes') || '[]');
             this.activeSceneId = localStorage.getItem('multistream_active_scene') || null;
+
+            // Load overlays
+            this.overlays = JSON.parse(localStorage.getItem('multistream_overlays') || '[]');
         } catch (error) {
             console.error('Failed to load state:', error);
             // Use defaults
@@ -571,6 +581,9 @@ const app = {
             this.updateAudioStatus();
             this.initSortable(); // Reinitialize sortable after render
             this.initResizeHandles(); // Initialize resize functionality
+
+            // Render overlays on top of the grid
+            setTimeout(() => this.renderOverlays(), 100);
         } catch (error) {
             console.error('Render error:', error);
             this.showError('Failed to render streams. Please refresh the page.');
@@ -1837,6 +1850,278 @@ const app = {
         if (index >= 0 && index < this.scenes.length) {
             this.loadScene(this.scenes[index].id);
         }
+    },
+
+    // ============================================================================
+    // OVERLAY MANAGER
+    // ============================================================================
+
+    toggleOverlayManager() {
+        this.overlayManagerOpen = !this.overlayManagerOpen;
+        const panel = document.getElementById('overlayManagerPanel');
+        const toggle = document.querySelector('.overlay-manager-toggle');
+
+        if (this.overlayManagerOpen) {
+            panel.classList.add('open');
+            toggle.classList.add('open');
+            this.renderOverlayList();
+        } else {
+            panel.classList.remove('open');
+            toggle.classList.remove('open');
+        }
+    },
+
+    renderOverlayList() {
+        const container = document.getElementById('overlayList');
+
+        if (this.overlays.length === 0) {
+            container.innerHTML = `
+                <div class="overlay-empty">
+                    <div class="overlay-empty-icon">📐</div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">No overlays yet</div>
+                    <div style="font-size: 12px;">Add text or image overlays to your streams</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        this.overlays.forEach(overlay => {
+            const overlayDiv = document.createElement('div');
+            overlayDiv.className = 'overlay-item' + (overlay.id === this.selectedOverlayId ? ' active' : '');
+            overlayDiv.dataset.overlayId = overlay.id;
+
+            const typeIcon = overlay.type === 'text' ? '📝' : '🖼️';
+            const visibleIcon = overlay.visible ? '👁️' : '👁️‍🗨️';
+
+            overlayDiv.innerHTML = `
+                <div class="overlay-item-info">
+                    <div class="overlay-item-header">
+                        <span class="overlay-type-icon">${typeIcon}</span>
+                        <span class="overlay-item-name">${this.escapeHtml(overlay.name || (overlay.type === 'text' ? 'Text Overlay' : 'Image Overlay'))}</span>
+                    </div>
+                    <div class="overlay-item-controls">
+                        <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Opacity</label>
+                        <input type="range" class="overlay-slider" min="0" max="100" value="${overlay.opacity * 100}"
+                               oninput="app.updateOverlayProperty('${overlay.id}', 'opacity', this.value / 100)"
+                               style="width: 100%; margin-bottom: 8px;">
+                        ${overlay.type === 'text' ? `
+                            <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Text</label>
+                            <input type="text" class="overlay-text-input" value="${this.escapeHtml(overlay.text || '')}"
+                                   oninput="app.updateOverlayProperty('${overlay.id}', 'text', this.value)"
+                                   style="width: 100%; padding: 6px; background: #0F172A; border: 1px solid #334155; border-radius: 4px; color: white; font-size: 12px; margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Font Size</label>
+                            <input type="number" class="overlay-size-input" value="${overlay.fontSize || 24}" min="12" max="72"
+                                   oninput="app.updateOverlayProperty('${overlay.id}', 'fontSize', this.value)"
+                                   style="width: 100%; padding: 6px; background: #0F172A; border: 1px solid #334155; border-radius: 4px; color: white; font-size: 12px; margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Color</label>
+                            <input type="color" value="${overlay.color || '#ffffff'}"
+                                   oninput="app.updateOverlayProperty('${overlay.id}', 'color', this.value)"
+                                   style="width: 100%; height: 32px; background: #0F172A; border: 1px solid #334155; border-radius: 4px; margin-bottom: 8px;">
+                        ` : `
+                            <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Image URL</label>
+                            <input type="text" class="overlay-text-input" value="${this.escapeHtml(overlay.imageUrl || '')}"
+                                   oninput="app.updateOverlayProperty('${overlay.id}', 'imageUrl', this.value)"
+                                   placeholder="https://example.com/image.png"
+                                   style="width: 100%; padding: 6px; background: #0F172A; border: 1px solid #334155; border-radius: 4px; color: white; font-size: 12px; margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: #94A3B8; margin-bottom: 4px; display: block;">Size (px)</label>
+                            <input type="number" class="overlay-size-input" value="${overlay.width || 200}" min="50" max="800"
+                                   oninput="app.updateOverlayProperty('${overlay.id}', 'width', this.value)"
+                                   style="width: 100%; padding: 6px; background: #0F172A; border: 1px solid #334155; border-radius: 4px; color: white; font-size: 12px; margin-bottom: 8px;">
+                        `}
+                    </div>
+                </div>
+                <div class="overlay-item-actions">
+                    <button class="overlay-btn-icon" onclick="event.stopPropagation(); app.toggleOverlayVisibility('${overlay.id}')"
+                            title="${overlay.visible ? 'Hide' : 'Show'} overlay">
+                        ${visibleIcon}
+                    </button>
+                    <button class="overlay-btn-icon delete" onclick="event.stopPropagation(); app.deleteOverlay('${overlay.id}')"
+                            title="Delete overlay">
+                        🗑️
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(overlayDiv);
+        });
+
+        // Re-render overlays on grid
+        this.renderOverlays();
+    },
+
+    addTextOverlay() {
+        const overlay = {
+            id: 'overlay-' + Date.now(),
+            type: 'text',
+            name: `Text ${this.overlays.length + 1}`,
+            text: 'Sample Text',
+            fontSize: 24,
+            color: '#ffffff',
+            x: 50, // percent from left
+            y: 50, // percent from top
+            opacity: 1.0,
+            visible: true,
+            createdAt: Date.now()
+        };
+
+        this.overlays.push(overlay);
+        this.saveState();
+        this.renderOverlayList();
+
+        console.log('Text overlay added:', overlay);
+    },
+
+    addImageOverlay() {
+        const imageUrl = prompt('Enter image URL:', 'https://');
+        if (!imageUrl || !imageUrl.trim() || imageUrl === 'https://') return;
+
+        const overlay = {
+            id: 'overlay-' + Date.now(),
+            type: 'image',
+            name: `Image ${this.overlays.length + 1}`,
+            imageUrl: imageUrl.trim(),
+            width: 200,
+            x: 50, // percent from left
+            y: 50, // percent from top
+            opacity: 1.0,
+            visible: true,
+            createdAt: Date.now()
+        };
+
+        this.overlays.push(overlay);
+        this.saveState();
+        this.renderOverlayList();
+
+        console.log('Image overlay added:', overlay);
+    },
+
+    updateOverlayProperty(overlayId, property, value) {
+        const overlay = this.overlays.find(o => o.id === overlayId);
+        if (!overlay) return;
+
+        // Type conversion
+        if (property === 'opacity' || property === 'fontSize' || property === 'width') {
+            value = parseFloat(value);
+        }
+
+        overlay[property] = value;
+        this.saveState();
+        this.renderOverlays();
+    },
+
+    toggleOverlayVisibility(overlayId) {
+        const overlay = this.overlays.find(o => o.id === overlayId);
+        if (!overlay) return;
+
+        overlay.visible = !overlay.visible;
+        this.saveState();
+        this.renderOverlayList();
+    },
+
+    deleteOverlay(overlayId) {
+        const overlay = this.overlays.find(o => o.id === overlayId);
+        if (!overlay) return;
+
+        if (!confirm(`Delete overlay "${overlay.name}"?`)) return;
+
+        this.overlays = this.overlays.filter(o => o.id !== overlayId);
+        this.saveState();
+        this.renderOverlayList();
+
+        console.log('Overlay deleted:', overlay.name);
+    },
+
+    renderOverlays() {
+        // Remove existing overlay elements
+        const existingOverlays = document.querySelectorAll('.grid-overlay');
+        existingOverlays.forEach(el => el.remove());
+
+        // Render visible overlays
+        const gridContainer = document.getElementById('streamGrid');
+        if (!gridContainer) return;
+
+        this.overlays.forEach(overlay => {
+            if (!overlay.visible) return;
+
+            const overlayEl = document.createElement('div');
+            overlayEl.className = 'grid-overlay';
+            overlayEl.dataset.overlayId = overlay.id;
+            overlayEl.style.left = overlay.x + '%';
+            overlayEl.style.top = overlay.y + '%';
+            overlayEl.style.opacity = overlay.opacity;
+            overlayEl.style.transform = 'translate(-50%, -50%)';
+
+            // Make draggable
+            overlayEl.addEventListener('mousedown', (e) => {
+                this.startDraggingOverlay(overlay.id, e);
+            });
+
+            if (overlay.type === 'text') {
+                const textEl = document.createElement('div');
+                textEl.className = 'grid-overlay-text';
+                textEl.textContent = overlay.text || 'Sample Text';
+                textEl.style.fontSize = (overlay.fontSize || 24) + 'px';
+                textEl.style.color = overlay.color || '#ffffff';
+                overlayEl.appendChild(textEl);
+            } else if (overlay.type === 'image') {
+                const imgEl = document.createElement('img');
+                imgEl.className = 'grid-overlay-image';
+                imgEl.src = overlay.imageUrl || '';
+                imgEl.style.width = (overlay.width || 200) + 'px';
+                imgEl.style.height = 'auto';
+                imgEl.alt = overlay.name || 'Overlay image';
+                overlayEl.appendChild(imgEl);
+            }
+
+            gridContainer.appendChild(overlayEl);
+        });
+    },
+
+    startDraggingOverlay(overlayId, event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const overlay = this.overlays.find(o => o.id === overlayId);
+        if (!overlay) return;
+
+        this.draggingOverlay = overlay;
+        this.selectedOverlayId = overlayId;
+
+        const gridContainer = document.getElementById('streamGrid');
+        const gridRect = gridContainer.getBoundingClientRect();
+
+        const onMouseMove = (e) => {
+            if (!this.draggingOverlay) return;
+
+            // Calculate position as percentage
+            const x = ((e.clientX - gridRect.left) / gridRect.width) * 100;
+            const y = ((e.clientY - gridRect.top) / gridRect.height) * 100;
+
+            // Clamp to grid bounds
+            overlay.x = Math.max(0, Math.min(100, x));
+            overlay.y = Math.max(0, Math.min(100, y));
+
+            // Update position immediately
+            const overlayEl = document.querySelector(`[data-overlay-id="${overlayId}"]`);
+            if (overlayEl) {
+                overlayEl.style.left = overlay.x + '%';
+                overlayEl.style.top = overlay.y + '%';
+            }
+        };
+
+        const onMouseUp = () => {
+            if (this.draggingOverlay) {
+                this.saveState();
+                this.draggingOverlay = null;
+            }
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     }
 };
 
