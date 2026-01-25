@@ -72,6 +72,7 @@ UniteRev is now a complete live production tool with professional features:
 ✅ **Dashboard** - Real-time stats and quick layout presets
 ✅ **Stream Scanner** - Discover live streams by keywords
 ✅ **Control Panel** - Multi-monitor setup for advanced control
+✅ **Import/Export** - Backup/restore configs, bulk add streams from files
 
 #### Technical Features
 ✅ **No Installation** - Double-click HTML file to start
@@ -91,6 +92,7 @@ UniteRev is now a complete live production tool with professional features:
 ✅ **Transitions**: Fade, Slide (4 directions), Zoom, Wipe
 ✅ **Dashboard**: Stream count, audio source, recording time, active scene
 ✅ **Hotkeys**: 1-9 for instant scene switching
+✅ **Import/Export**: Full config backup/restore, bulk stream import
 
 **Perfect for:**
 - 🎥 Live production and recording
@@ -103,7 +105,7 @@ UniteRev is now a complete live production tool with professional features:
 
 📂 **Location**: `standalone/` folder
 📖 **Full Guide**: [standalone/README.md](./standalone/README.md)
-🎬 **Features**: Recording, Audio Mixer, Scenes, Overlays, Transitions, Dashboard
+🎬 **Features**: Recording, Audio Mixer, Scenes, Overlays, Transitions, Dashboard, Import/Export
 
 ### **Premium Version** (Optional Upgrade)
 
@@ -332,6 +334,77 @@ Click any preset button to instantly switch layouts:
 - Shorter durations feel snappier
 - Longer durations are more cinematic
 - Transitions visible on hotkey switches
+
+---
+
+### 📁 Import/Export Configuration
+
+**Backup, restore, and share your complete setup**
+
+**How to Access:**
+- Click the **📁 Import/Export** button in the header
+
+**Features:**
+- ✅ Export entire configuration to JSON file
+- ✅ Import previously saved configurations
+- ✅ Bulk add multiple streams from text file or paste
+- ✅ Share setups with other users
+- ✅ Quick backup before making major changes
+
+**Export Configuration:**
+1. Click **📁 Import/Export** button
+2. In the modal, click **"Download Configuration File"**
+3. A JSON file is saved with date stamp (e.g., `uniterev-config-2026-01-25.json`)
+4. Store this file as a backup
+
+**What Gets Exported:**
+- ✅ All saved streamers
+- ✅ Current grid layout
+- ✅ Active streams in grid
+- ✅ All saved scenes
+- ✅ All overlays and their positions
+- ✅ Transition settings
+- ✅ Audio settings
+
+**Import Configuration:**
+1. Click **📁 Import/Export** button
+2. Click **"Choose Configuration File"**
+3. Select your previously exported `.json` file
+4. Confirm you want to replace current settings
+5. Your complete setup is instantly restored
+
+**Bulk Add Streams:**
+1. Click **📁 Import/Export** button
+2. Choose one of two methods:
+   - **Paste URLs:** Enter stream URLs in the textarea (one per line)
+   - **Upload File:** Click "Load from File" and select a `.txt` file with URLs
+3. Click **"Add All Streams"**
+4. All valid URLs are added to your grid automatically
+
+**Bulk Stream File Format:**
+```
+https://www.youtube.com/watch?v=VIDEO_ID
+https://www.twitch.tv/CHANNEL_NAME
+https://www.youtube.com/watch?v=ANOTHER_ID
+
+https://rumble.com/VIDEO_URL
+```
+
+**Tips:**
+- ✅ Export regularly to backup your setup
+- ✅ Create different config files for different events
+- ✅ Share config files with team members
+- ✅ Use bulk add to quickly populate grid from a list
+- ✅ Blank lines in bulk import are ignored
+- ✅ Invalid URLs are skipped automatically
+- ✅ Import warns before overwriting current config
+
+**Use Cases:**
+- 📦 **Backup:** Save your configuration before experimenting
+- 🔄 **Migration:** Move setup between browsers or computers
+- 👥 **Sharing:** Send config to team members
+- ⚡ **Quick Setup:** Bulk add 10+ streams instantly
+- 🎯 **Event Prep:** Pre-configure streams for upcoming events
 
 ---
 
@@ -625,7 +698,15 @@ Works with any embeddable video:
   - ✅ Audio mixer settings
   - ✅ Transition preferences
   - ✅ Dashboard preferences
-- **Tip:** Export your browser's localStorage to backup settings
+- **Tip:** Use the Import/Export feature to backup your complete configuration
+
+### For Import/Export:
+- ✅ Export config before making major changes
+- ✅ Create separate config files for different events
+- ✅ Use bulk import to quickly add 10+ streams
+- ✅ Share config files with team members
+- ✅ Keep backups of important setups
+- ✅ Test imported configs before going live
 
 ---
 

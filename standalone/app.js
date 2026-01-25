@@ -1081,6 +1081,205 @@ const app = {
         this.selectedSlot = null;
     },
 
+    // Import/Export Modal
+    openImportExportModal() {
+        document.getElementById('importExportModal').classList.add('active');
+        document.getElementById('bulkStreamUrls').value = '';
+    },
+
+    closeImportExportModal() {
+        document.getElementById('importExportModal').classList.remove('active');
+    },
+
+    // Export Configuration
+    exportConfiguration() {
+        const config = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            gridLayout: this.gridLayout,
+            gridStreams: this.gridStreams,
+            savedStreamers: this.savedStreamers,
+            scenes: this.scenes,
+            overlays: this.overlays,
+            transitionType: this.transitionType,
+            transitionDuration: this.transitionDuration
+        };
+
+        const dataStr = JSON.stringify(config, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+        const exportFileDefaultName = `uniterev-config-${new Date().toISOString().split('T')[0]}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+
+        this.showSuccess('Configuration exported successfully!');
+    },
+
+    // Import Configuration
+    importConfiguration(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const config = JSON.parse(e.target.result);
+
+                // Validate config structure
+                if (!config.version) {
+                    throw new Error('Invalid configuration file format');
+                }
+
+                // Confirm with user
+                if (!confirm('This will replace your current configuration. Are you sure you want to continue?')) {
+                    return;
+                }
+
+                // Apply configuration
+                this.gridLayout = config.gridLayout || '2x2';
+                this.gridStreams = config.gridStreams || [];
+                this.savedStreamers = config.savedStreamers || [];
+                this.scenes = config.scenes || [];
+                this.overlays = config.overlays || [];
+                this.transitionType = config.transitionType || 'fade';
+                this.transitionDuration = config.transitionDuration || 300;
+
+                // Save to localStorage
+                this.saveState();
+
+                // Update UI
+                this.render();
+                this.updateLayoutButtons();
+                this.renderSavedStreamers();
+                this.renderSceneList();
+                this.renderOverlayList();
+
+                this.showSuccess('Configuration imported successfully!');
+                this.closeImportExportModal();
+
+                // Reset file input
+                event.target.value = '';
+            } catch (error) {
+                console.error('Import error:', error);
+                this.showError('Failed to import configuration. Please check the file format.');
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    },
+
+    // Load Bulk Stream File
+    loadBulkStreamFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('bulkStreamUrls').value = e.target.result;
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    },
+
+    // Bulk Add Streams
+    bulkAddStreams() {
+        const textarea = document.getElementById('bulkStreamUrls');
+        const urls = textarea.value
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && (line.startsWith('http://') || line.startsWith('https://')));
+
+        if (urls.length === 0) {
+            this.showError('Please enter at least one valid URL');
+            return;
+        }
+
+        let addedCount = 0;
+        let skippedCount = 0;
+
+        urls.forEach(url => {
+            // Check if we have room
+            const emptySlotCount = this.gridStreams.filter(s => s === null).length;
+            if (addedCount >= emptySlotCount && this.gridStreams.length >= this.getMaxStreams()) {
+                skippedCount++;
+                return;
+            }
+
+            // Extract stream info from URL
+            const streamInfo = this.extractStreamInfo(url);
+            if (streamInfo) {
+                // Find first empty slot or add to end
+                const emptyIndex = this.gridStreams.findIndex(s => s === null);
+                if (emptyIndex >= 0) {
+                    this.gridStreams[emptyIndex] = streamInfo;
+                } else if (this.gridStreams.length < this.getMaxStreams()) {
+                    this.gridStreams.push(streamInfo);
+                } else {
+                    skippedCount++;
+                    return;
+                }
+                addedCount++;
+            } else {
+                skippedCount++;
+            }
+        });
+
+        // Save and render
+        this.saveState();
+        this.render();
+
+        // Show results
+        let message = `Added ${addedCount} stream(s)`;
+        if (skippedCount > 0) {
+            message += `, skipped ${skippedCount} (invalid or grid full)`;
+        }
+        this.showSuccess(message);
+
+        // Clear textarea
+        textarea.value = '';
+    },
+
+    // Extract stream info from URL (helper for bulk add)
+    extractStreamInfo(url) {
+        try {
+            // Generate a name from the URL
+            let name = 'Stream';
+
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                name = 'YouTube Stream';
+            } else if (url.includes('twitch.tv')) {
+                const match = url.match(/twitch\.tv\/([^\/\?]+)/);
+                name = match ? match[1] : 'Twitch Stream';
+            } else if (url.includes('twitter.com') || url.includes('x.com')) {
+                name = 'X/Twitter Stream';
+            } else if (url.includes('facebook.com')) {
+                name = 'Facebook Stream';
+            } else if (url.includes('tiktok.com')) {
+                name = 'TikTok Stream';
+            } else if (url.includes('rumble.com')) {
+                name = 'Rumble Stream';
+            }
+
+            return {
+                name: name,
+                url: url,
+                embed: this.getEmbedUrl(url)
+            };
+        } catch (error) {
+            console.error('Failed to extract stream info:', error);
+            return null;
+        }
+    },
+
+    // Get max streams based on grid layout
+    getMaxStreams() {
+        const [rows, cols] = this.gridLayout.split('x').map(Number);
+        return rows * cols;
+    },
+
     // Utility
     escapeHtml(text) {
         const div = document.createElement('div');
@@ -1127,6 +1326,49 @@ const app = {
             if (error.parentElement) {
                 error.style.animation = 'slideOut 0.3s ease-in';
                 setTimeout(() => error.remove(), 300);
+            }
+        }, 5000);
+    },
+
+    showSuccess(message) {
+        // Create success notification
+        const success = document.createElement('div');
+        success.className = 'success-notification';
+        success.setAttribute('role', 'alert');
+        success.setAttribute('aria-live', 'polite');
+        success.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #D1FAE5;
+            color: #065F46;
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 2px solid #10B981;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        success.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">✅</span>
+                <div style="flex: 1;">${this.escapeHtml(message)}</div>
+                <button onclick="this.parentElement.parentElement.remove()"
+                        style="background: none; border: none; cursor: pointer; font-size: 20px; color: #065F46;"
+                        aria-label="Close success message">
+                    ×
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(success);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (success.parentElement) {
+                success.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => success.remove(), 300);
             }
         }, 5000);
     },

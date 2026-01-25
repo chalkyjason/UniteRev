@@ -1756,6 +1756,9 @@
                     <button class="btn btn-secondary" onclick="app.openScanner()" title="Find live streams by keywords across platforms">
                         🔍 Stream Scanner
                     </button>
+                    <button class="btn btn-secondary" onclick="app.openImportExportModal()" title="Import/Export configuration or bulk add streams">
+                        📁 Import/Export
+                    </button>
                     <button class="btn btn-record" id="recordBtn" onclick="app.toggleRecording()" title="Start recording the grid" aria-label="Start recording">
                         ⏺️ Record
                     </button>
@@ -2000,6 +2003,67 @@
             aria-label="Open audio mixer">
         🎚️
     </button>
+
+    <!-- Import/Export Modal -->
+    <div class="modal" id="importExportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📁 Import/Export Configuration</h2>
+                <button class="btn-close" onclick="app.closeImportExportModal()">✕</button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Export Section -->
+                <div style="border: 1px solid #334155; border-radius: 8px; padding: 16px;">
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">📤 Export Configuration</h3>
+                    <p style="font-size: 13px; color: #94A3B8; margin-bottom: 12px;">
+                        Download your complete setup including streams, scenes, overlays, and settings to a JSON file.
+                    </p>
+                    <button class="btn btn-primary" onclick="app.exportConfiguration()" style="width: 100%;">
+                        Download Configuration File
+                    </button>
+                </div>
+
+                <!-- Import Section -->
+                <div style="border: 1px solid #334155; border-radius: 8px; padding: 16px;">
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">📥 Import Configuration</h3>
+                    <p style="font-size: 13px; color: #94A3B8; margin-bottom: 12px;">
+                        Load a previously exported configuration file to restore all your settings.
+                    </p>
+                    <input type="file" id="importConfigFile" accept=".json,.txt" style="display: none;" onchange="app.importConfiguration(event)">
+                    <button class="btn btn-primary" onclick="document.getElementById('importConfigFile').click()" style="width: 100%;">
+                        Choose Configuration File
+                    </button>
+                    <p style="font-size: 11px; color: #64748B; margin-top: 8px;">
+                        ⚠️ This will replace your current configuration
+                    </p>
+                </div>
+
+                <!-- Bulk Add Streams Section -->
+                <div style="border: 1px solid #334155; border-radius: 8px; padding: 16px;">
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">📋 Bulk Add Streams</h3>
+                    <p style="font-size: 13px; color: #94A3B8; margin-bottom: 12px;">
+                        Paste multiple stream URLs (one per line) or upload a text file to quickly add multiple streams.
+                    </p>
+                    <textarea id="bulkStreamUrls" class="form-input"
+                              placeholder="https://www.youtube.com/watch?v=...&#10;https://www.twitch.tv/...&#10;https://www.youtube.com/watch?v=..."
+                              style="min-height: 120px; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <input type="file" id="importBulkFile" accept=".txt" style="display: none;" onchange="app.loadBulkStreamFile(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('importBulkFile').click()" style="flex: 1;">
+                            Load from File
+                        </button>
+                        <button class="btn btn-primary" onclick="app.bulkAddStreams()" style="flex: 1;">
+                            Add All Streams
+                        </button>
+                    </div>
+                    <p style="font-size: 11px; color: #64748B; margin-top: 8px;">
+                        💡 Tip: Each URL on a new line, blank lines will be ignored
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- SortableJS for drag-and-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
