@@ -194,12 +194,25 @@ Changing layouts preserves as many streams as possible. Streams beyond the new g
 
 Discover live streams by keywords and trending topics across multiple platforms.
 
+### Where to Find the Scanner
+
+There are **THREE ways** to open the Stream Scanner:
+
+**Method 1: From Main Viewer** ⭐ EASIEST!
+- Open `index.html`
+- Click **"🔍 Stream Scanner"** button (top-right corner, next to Control Panel button)
+
+**Method 2: From Control Panel**
+- Open Control Panel
+- Find Logo Header panel (top-left)
+- Click **"🔍 Open Stream Scanner"** button
+
+**Method 3: Direct Access**
+- Open `scanner.html` directly in your browser
+
 ### How to Use
 
-1. **Open Scanner**:
-   - Open the Control Panel
-   - Click the **"🔍 Open Stream Scanner"** button in the Logo Header panel
-   - Scanner opens in a new popup window
+1. **Open Scanner** (using any method above)
 
 2. **Add Keywords**:
    - Type a keyword (e.g., "protest", "gaming", "cooking")
@@ -249,6 +262,43 @@ For real YouTube data (instead of demo):
 3. Enter your API key in "Option 2" section
 4. Click **Save API Key**
 5. Basic access enabled (lower quotas)
+
+### Twitch Authentication (Optional)
+
+For real Twitch data:
+1. Go to [Twitch Developer Console](https://dev.twitch.tv/console)
+2. Create an application and get your Client ID
+3. In Stream Scanner, click **⚙️ Configure** on Twitch plugin
+4. Enter your Client ID and Client Secret
+5. Click **Save Configuration**
+
+### Chat Authentication (Control Panel)
+
+The Control Panel also supports YouTube and Twitch authentication for **monitoring live chat**:
+
+**YouTube Live Chat:**
+1. Open Control Panel
+2. Go to "💬 Unified Chat" panel
+3. Click **"Login YouTube"** button
+4. Enter your Google OAuth Client ID (same as scanner)
+5. Sign in with Google
+6. Enter a YouTube Live video URL to monitor
+7. Chat messages appear in real-time!
+
+**Twitch Chat:**
+1. Open Control Panel
+2. Go to "💬 Unified Chat" panel
+3. Click **"Login Twitch"** button
+4. Get OAuth token from [TwitchApps TMI](https://twitchapps.com/tmi/)
+5. Paste the token (starts with `oauth:`)
+6. Enter channel names to monitor (comma-separated)
+7. Chat messages appear in real-time!
+
+**Unified Chat Feed:**
+- All messages from all platforms appear in one feed
+- Color-coded by platform (purple for Twitch, red for YouTube)
+- Includes username, timestamp, and message
+- Auto-scrolls to newest messages
 
 ### Plugin Management
 

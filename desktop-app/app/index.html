@@ -59,6 +59,111 @@
             gap: 12px;
         }
 
+        /* Dashboard Bar */
+        .dashboard-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0 0 0;
+            margin-top: 12px;
+            border-top: 1px solid #334155;
+            padding-top: 12px;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #94A3B8;
+        }
+
+        .stat-icon {
+            font-size: 16px;
+        }
+
+        .stat-label {
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #E2E8F0;
+            font-weight: 600;
+            background: #0F172A;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .dashboard-controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .control-label {
+            color: #64748B;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .btn-layout-preset {
+            padding: 6px 12px;
+            background: #334155;
+            color: #E2E8F0;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-layout-preset:hover {
+            background: #475569;
+            border-color: #64748B;
+            transform: translateY(-1px);
+        }
+
+        .btn-layout-preset.active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: white;
+        }
+
+        .btn-fullscreen {
+            padding: 6px 14px;
+            background: #334155;
+            color: #E2E8F0;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-fullscreen:hover {
+            background: #475569;
+            border-color: #64748B;
+        }
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -86,6 +191,77 @@
 
         .btn-secondary:hover {
             background: #475569;
+        }
+
+        .btn-record {
+            background: #EF4444;
+            color: white;
+            position: relative;
+        }
+
+        .btn-record:hover {
+            background: #DC2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-record.recording {
+            background: #DC2626;
+            animation: recordPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        .btn-stop-record {
+            background: #DC2626;
+            color: white;
+        }
+
+        .btn-stop-record:hover {
+            background: #B91C1C;
+        }
+
+        /* Recording Indicator */
+        .recording-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: recordBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes recordBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .recording-timer {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
         }
 
         /* Grid Layout Selector */
@@ -178,71 +354,6 @@
             width: 100%;
             height: 100%;
             border: none;
-        }
-
-        /* Webview Container and Navigation */
-        .webview-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .webview-nav {
-            display: flex;
-            gap: 4px;
-            padding: 4px;
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid #334155;
-            flex-shrink: 0;
-            z-index: 10;
-        }
-
-        .nav-btn {
-            padding: 4px 8px;
-            background: rgba(51, 65, 85, 0.8);
-            border: 1px solid #475569;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: rgba(71, 85, 105, 0.9);
-            border-color: #64748b;
-        }
-
-        .nav-btn:active {
-            transform: scale(0.95);
-        }
-
-        .webview-url {
-            flex: 1;
-            padding: 4px 8px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #475569;
-            border-radius: 4px;
-            color: white;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .webview-url:focus {
-            outline: none;
-            border-color: #3B82F6;
-            background: rgba(30, 41, 59, 0.95);
-        }
-
-        .webview-container webview {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-        }
-
-        webview.loading {
-            opacity: 0.7;
         }
 
         /* Stream Overlay */
@@ -682,6 +793,675 @@
             color: white;
         }
 
+        /* Scene Manager Panel */
+        .scene-manager-panel {
+            position: fixed;
+            bottom: 0;
+            left: -350px;
+            width: 350px;
+            height: calc(100vh - 200px);
+            background: #1E293B;
+            border-right: 2px solid #334155;
+            border-top: 2px solid #334155;
+            border-top-right-radius: 12px;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+            transition: left 0.3s ease;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scene-manager-panel.open {
+            left: 0;
+        }
+
+        .scene-manager-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0F172A;
+            border-top-right-radius: 12px;
+        }
+
+        .scene-manager-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scene-manager-close {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .scene-manager-close:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .scene-manager-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .scene-manager-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #334155;
+            background: #0F172A;
+        }
+
+        .scene-item {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 2px solid #334155;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scene-item:hover {
+            border-color: #3B82F6;
+            background: #1E293B;
+        }
+
+        .scene-item.active {
+            border-color: #3B82F6;
+            background: #1E3A5F;
+        }
+
+        .scene-item-info {
+            flex: 1;
+        }
+
+        .scene-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #E2E8F0;
+            margin-bottom: 4px;
+        }
+
+        .scene-item.active .scene-item-name {
+            color: #60A5FA;
+        }
+
+        .scene-item-meta {
+            font-size: 12px;
+            color: #64748B;
+            display: flex;
+            gap: 12px;
+        }
+
+        .scene-item-hotkey {
+            background: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #94A3B8;
+        }
+
+        .scene-item.active .scene-item-hotkey {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .scene-item-actions {
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .scene-item:hover .scene-item-actions {
+            opacity: 1;
+        }
+
+        .scene-btn-icon {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background: #334155;
+            color: #94A3B8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .scene-btn-icon:hover {
+            background: #475569;
+            color: white;
+        }
+
+        .scene-btn-icon.delete:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        .scene-manager-toggle {
+            position: fixed;
+            bottom: 60px;
+            left: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #8B5CF6;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            z-index: 9998;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-manager-toggle:hover {
+            background: #7C3AED;
+            transform: scale(1.1);
+        }
+
+        .scene-manager-toggle.open {
+            left: 370px;
+        }
+
+        .scene-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748B;
+        }
+
+        .scene-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .btn-save-scene {
+            background: #8B5CF6;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-save-scene:hover {
+            background: #7C3AED;
+            transform: translateY(-1px);
+        }
+
+        /* Scene transition overlay */
+        .scene-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0F172A;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9997;
+            transition: all 0.3s ease;
+            transform: translateX(0) translateY(0) scale(1);
+        }
+
+        .scene-transition.active {
+            opacity: 1;
+        }
+
+        /* Transition Types */
+        .scene-transition.fade {
+            transition: opacity var(--transition-duration, 300ms) ease;
+        }
+
+        .scene-transition.slide-left {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.slide-left.active {
+            transform: translateX(-100%);
+        }
+
+        .scene-transition.slide-right {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.slide-right.active {
+            transform: translateX(100%);
+        }
+
+        .scene-transition.slide-up {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.slide-up.active {
+            transform: translateY(-100%);
+        }
+
+        .scene-transition.slide-down {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.slide-down.active {
+            transform: translateY(100%);
+        }
+
+        .scene-transition.zoom-in {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.zoom-in.active {
+            transform: scale(2);
+        }
+
+        .scene-transition.zoom-out {
+            transition: transform var(--transition-duration, 300ms) ease, opacity var(--transition-duration, 300ms) ease;
+        }
+        .scene-transition.zoom-out.active {
+            transform: scale(0.5);
+        }
+
+        .scene-transition.wipe-left {
+            transition: clip-path var(--transition-duration, 300ms) ease;
+            clip-path: inset(0 0 0 0);
+        }
+        .scene-transition.wipe-left.active {
+            clip-path: inset(0 0 0 100%);
+        }
+
+        .scene-transition.wipe-right {
+            transition: clip-path var(--transition-duration, 300ms) ease;
+            clip-path: inset(0 0 0 0);
+        }
+        .scene-transition.wipe-right.active {
+            clip-path: inset(0 100% 0 0);
+        }
+
+        /* Transition Controls */
+        .transition-controls {
+            padding: 12px 16px;
+            background: #0F172A;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .transition-control-header {
+            margin-bottom: 8px;
+        }
+
+        .transition-type-selector {
+            margin-bottom: 12px;
+        }
+
+        .transition-select {
+            width: 100%;
+            padding: 8px;
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #E2E8F0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .transition-select:hover {
+            border-color: #475569;
+        }
+
+        .transition-select:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+
+        .transition-slider {
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .transition-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3B82F6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .transition-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #3B82F6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Overlay System */
+        .overlay-manager-panel {
+            position: fixed;
+            top: 80px;
+            right: -380px;
+            width: 380px;
+            height: calc(100vh - 160px);
+            background: #1E293B;
+            border-left: 2px solid #334155;
+            border-radius: 12px 0 0 12px;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+            transition: right 0.3s ease;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .overlay-manager-panel.open {
+            right: 0;
+        }
+
+        .overlay-manager-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0F172A;
+            border-radius: 12px 0 0 0;
+        }
+
+        .overlay-manager-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .overlay-manager-close {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .overlay-manager-close:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .overlay-manager-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .overlay-manager-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #334155;
+            background: #0F172A;
+            display: flex;
+            gap: 8px;
+        }
+
+        .overlay-item {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 2px solid #334155;
+            transition: all 0.2s;
+        }
+
+        .overlay-item:hover {
+            border-color: #F59E0B;
+        }
+
+        .overlay-item.active {
+            border-color: #F59E0B;
+            background: #3F2305;
+        }
+
+        .overlay-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .overlay-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .overlay-item-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .overlay-btn-icon {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background: #334155;
+            color: #94A3B8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .overlay-btn-icon:hover {
+            background: #475569;
+            color: white;
+        }
+
+        .overlay-btn-icon.active {
+            background: #F59E0B;
+            color: white;
+        }
+
+        .overlay-btn-icon.delete:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        .overlay-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .overlay-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .overlay-control-label {
+            font-size: 12px;
+            color: #94A3B8;
+            font-weight: 500;
+        }
+
+        .overlay-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #E2E8F0;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .overlay-input:focus {
+            outline: none;
+            border-color: #F59E0B;
+        }
+
+        .overlay-textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .overlay-select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #E2E8F0;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .overlay-slider-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .overlay-slider {
+            flex: 1;
+        }
+
+        .overlay-slider-value {
+            min-width: 45px;
+            text-align: right;
+            font-size: 12px;
+            color: #F59E0B;
+            font-weight: 600;
+        }
+
+        .btn-add-overlay {
+            flex: 1;
+            background: #F59E0B;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .btn-add-overlay:hover {
+            background: #D97706;
+            transform: translateY(-1px);
+        }
+
+        .overlay-manager-toggle {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #F59E0B;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            z-index: 9998;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overlay-manager-toggle:hover {
+            background: #D97706;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .overlay-manager-toggle.open {
+            right: 400px;
+        }
+
+        /* Overlays on grid */
+        .grid-overlay {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            z-index: 100;
+            transition: opacity 0.2s;
+        }
+
+        .grid-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay-text {
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .grid-overlay-image {
+            max-width: 300px;
+            max-height: 200px;
+            object-fit: contain;
+        }
+
+        .grid-overlay.dragging {
+            cursor: grabbing;
+            opacity: 0.7;
+        }
+
+        .overlay-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748B;
+        }
+
+        .overlay-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
         /* Footer */
         .footer {
             background: #1E293B;
@@ -718,6 +1498,249 @@
                 transform: scale(1.2);
             }
         }
+
+        /* Audio Mixer Panel */
+        .audio-mixer-panel {
+            position: fixed;
+            bottom: 0;
+            right: -400px;
+            width: 400px;
+            height: calc(100vh - 200px);
+            background: #1E293B;
+            border-left: 2px solid #334155;
+            border-top: 2px solid #334155;
+            border-top-left-radius: 12px;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+            transition: right 0.3s ease;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .audio-mixer-panel.open {
+            right: 0;
+        }
+
+        .audio-mixer-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0F172A;
+            border-top-left-radius: 12px;
+        }
+
+        .audio-mixer-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-mixer-close {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .audio-mixer-close:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .audio-mixer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .audio-mixer-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #334155;
+            background: #0F172A;
+        }
+
+        .audio-channel {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid #334155;
+        }
+
+        .audio-channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .audio-channel-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-channel-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .audio-btn-icon {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #94A3B8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .audio-btn-icon:hover {
+            background: #475569;
+            color: white;
+        }
+
+        .audio-btn-icon.active {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .audio-btn-icon.muted {
+            background: #EF4444;
+            color: white;
+        }
+
+        .audio-volume-control {
+            margin-bottom: 12px;
+        }
+
+        .audio-volume-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #94A3B8;
+        }
+
+        .audio-volume-value {
+            font-weight: 600;
+            color: #3B82F6;
+        }
+
+        .audio-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .audio-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .audio-slider::-webkit-slider-thumb:hover {
+            background: #2563EB;
+            transform: scale(1.2);
+        }
+
+        .audio-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .audio-slider::-moz-range-thumb:hover {
+            background: #2563EB;
+            transform: scale(1.2);
+        }
+
+        .audio-meter {
+            height: 8px;
+            background: #0F172A;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .audio-meter-fill {
+            height: 100%;
+            background: linear-gradient(to right, #10B981, #FBBF24, #EF4444);
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+
+        .master-volume {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 16px;
+            border: 2px solid #3B82F6;
+        }
+
+        .master-volume-header {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #3B82F6;
+        }
+
+        .audio-mixer-toggle {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #3B82F6;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            z-index: 9998;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-mixer-toggle:hover {
+            background: #2563EB;
+            transform: scale(1.1);
+        }
+
+        .audio-mixer-toggle.open {
+            right: 420px;
+        }
     </style>
 </head>
 <body>
@@ -730,8 +1753,55 @@
                     <span style="font-size: 24px; font-weight: 700;">AntifaTimes Stream Manager</span>
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="app.openScanner()" title="Find live streams by keywords across platforms">
+                        🔍 Stream Scanner
+                    </button>
+                    <button class="btn btn-record" id="recordBtn" onclick="app.toggleRecording()" title="Start recording the grid" aria-label="Start recording">
+                        ⏺️ Record
+                    </button>
                     <button class="btn btn-primary" onclick="app.openControlPanel()" title="Open control panel to manage streams on second monitor">
                         🎮 Open Control Panel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats & Controls -->
+            <div class="dashboard-bar">
+                <div class="dashboard-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-label">Streams:</span>
+                        <span class="stat-value" id="streamCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🔊</span>
+                        <span class="stat-label">Audio:</span>
+                        <span class="stat-value" id="audioSource">None</span>
+                    </div>
+                    <div class="stat-item" id="recordingStatus" style="display: none;">
+                        <span class="stat-icon">⏺️</span>
+                        <span class="stat-label">Recording:</span>
+                        <span class="stat-value" id="recordingDuration">00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🎬</span>
+                        <span class="stat-label">Scene:</span>
+                        <span class="stat-value" id="activeScene">None</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-controls">
+                    <div class="control-group">
+                        <span class="control-label">Quick Layouts:</span>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('1x1')" title="Single stream">1x1</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('2x2')" title="Four streams">2x2</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('3x3')" title="Nine streams">3x3</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('4x4')" title="Sixteen streams">4x4</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('2x1')" title="Side by side">2x1</button>
+                        <button class="btn-layout-preset" onclick="app.setLayoutPreset('1x2')" title="Top and bottom">1x2</button>
+                    </div>
+                    <button class="btn-fullscreen" onclick="app.toggleFullscreen()" title="Toggle fullscreen mode">
+                        <span id="fullscreenIcon">⛶</span> Fullscreen
                     </button>
                 </div>
             </div>
@@ -792,6 +1862,144 @@
             </div>
         </div>
     </div>
+
+    <!-- Recording Indicator -->
+    <div class="recording-indicator" id="recordingIndicator">
+        <div class="recording-dot"></div>
+        <div class="recording-timer" id="recordingTimer">00:00</div>
+        <div>Recording...</div>
+    </div>
+
+    <!-- Scene Manager Panel -->
+    <div class="scene-manager-panel" id="sceneManagerPanel">
+        <div class="scene-manager-header">
+            <div class="scene-manager-title">
+                🎬 Scenes
+            </div>
+            <button class="scene-manager-close" onclick="app.toggleSceneManager()" aria-label="Close scene manager">×</button>
+        </div>
+
+        <div class="scene-manager-body" id="sceneManagerBody">
+            <div id="sceneList"></div>
+        </div>
+
+        <div class="scene-manager-footer">
+            <div class="transition-controls">
+                <div class="transition-control-header">
+                    <span style="font-size: 12px; font-weight: 600; color: #94A3B8;">Transition Settings</span>
+                </div>
+                <div class="transition-type-selector">
+                    <label style="font-size: 11px; color: #64748B; margin-bottom: 4px; display: block;">Type</label>
+                    <select id="transitionType" class="transition-select" onchange="app.setTransitionType(this.value)">
+                        <option value="fade">Fade</option>
+                        <option value="slide-left">Slide Left</option>
+                        <option value="slide-right">Slide Right</option>
+                        <option value="slide-up">Slide Up</option>
+                        <option value="slide-down">Slide Down</option>
+                        <option value="zoom-in">Zoom In</option>
+                        <option value="zoom-out">Zoom Out</option>
+                        <option value="wipe-left">Wipe Left</option>
+                        <option value="wipe-right">Wipe Right</option>
+                    </select>
+                </div>
+                <div class="transition-duration-control">
+                    <label style="font-size: 11px; color: #64748B; margin-bottom: 4px; display: block;">
+                        Duration: <span id="transitionDurationLabel">300ms</span>
+                    </label>
+                    <input type="range" id="transitionDuration" class="transition-slider"
+                           min="100" max="2000" step="100" value="300"
+                           oninput="app.setTransitionDuration(this.value)">
+                </div>
+            </div>
+            <button class="btn-save-scene" onclick="app.saveCurrentScene()" aria-label="Save current scene">
+                💾 Save Current Scene
+            </button>
+        </div>
+    </div>
+
+    <!-- Scene Manager Toggle Button -->
+    <button class="scene-manager-toggle" id="sceneManagerToggle"
+            onclick="app.toggleSceneManager()"
+            title="Open Scene Manager"
+            aria-label="Open scene manager">
+        🎬
+    </button>
+
+    <!-- Scene Transition Overlay -->
+    <div class="scene-transition" id="sceneTransition"></div>
+
+    <!-- Overlay Manager Panel -->
+    <div class="overlay-manager-panel" id="overlayManagerPanel">
+        <div class="overlay-manager-header">
+            <div class="overlay-manager-title">
+                📐 Overlays
+            </div>
+            <button class="overlay-manager-close" onclick="app.toggleOverlayManager()" aria-label="Close overlay manager">×</button>
+        </div>
+
+        <div class="overlay-manager-body" id="overlayManagerBody">
+            <div id="overlayList"></div>
+        </div>
+
+        <div class="overlay-manager-footer">
+            <button class="btn-add-overlay" onclick="app.addTextOverlay()" aria-label="Add text overlay">
+                ➕ Text
+            </button>
+            <button class="btn-add-overlay" onclick="app.addImageOverlay()" aria-label="Add image overlay">
+                🖼️ Image
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay Manager Toggle Button -->
+    <button class="overlay-manager-toggle" id="overlayManagerToggle"
+            onclick="app.toggleOverlayManager()"
+            title="Open Overlay Manager"
+            aria-label="Open overlay manager">
+        📐
+    </button>
+
+    <!-- Audio Mixer Panel -->
+    <div class="audio-mixer-panel" id="audioMixerPanel">
+        <div class="audio-mixer-header">
+            <div class="audio-mixer-title">
+                🎚️ Audio Mixer
+            </div>
+            <button class="audio-mixer-close" onclick="app.toggleAudioMixer()" aria-label="Close audio mixer">×</button>
+        </div>
+
+        <div class="audio-mixer-body" id="audioMixerBody">
+            <!-- Audio channels will be dynamically added here -->
+            <div id="audioChannels"></div>
+        </div>
+
+        <div class="audio-mixer-footer">
+            <div class="master-volume">
+                <div class="master-volume-header">Master Volume</div>
+                <div class="audio-volume-control">
+                    <div class="audio-volume-label">
+                        <span>Output</span>
+                        <span class="audio-volume-value" id="masterVolumeValue">100%</span>
+                    </div>
+                    <input type="range" class="audio-slider" id="masterVolumeSlider"
+                           min="0" max="100" value="100"
+                           oninput="app.setMasterVolume(this.value)"
+                           aria-label="Master volume">
+                    <div class="audio-meter">
+                        <div class="audio-meter-fill" id="masterMeter"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Mixer Toggle Button -->
+    <button class="audio-mixer-toggle" id="audioMixerToggle"
+            onclick="app.toggleAudioMixer()"
+            title="Open Audio Mixer"
+            aria-label="Open audio mixer">
+        🎚️
+    </button>
 
     <!-- SortableJS for drag-and-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>

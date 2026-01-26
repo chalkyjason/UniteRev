@@ -29,6 +29,54 @@ class ScannerPlugin {
         // Override in platform-specific plugins if needed
         return stream.isLive !== false;
     }
+
+    // Fetch with retry logic and rate limit handling
+    async fetchWithRetry(url, options = {}, maxRetries = 3) {
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await fetch(url, options);
+
+                // Success
+                if (response.ok) {
+                    return response;
+                }
+
+                // Handle rate limiting (429 Too Many Requests)
+                if (response.status === 429) {
+                    const retryAfter = response.headers.get('Retry-After');
+                    const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+
+                    console.warn(`Rate limited by ${this.platform}. Retrying after ${waitTime}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
+                }
+
+                // Handle server errors with exponential backoff
+                if (response.status >= 500 && response.status < 600) {
+                    if (attempt < maxRetries - 1) {
+                        const waitTime = Math.pow(2, attempt) * 1000;
+                        console.warn(`${this.platform} server error ${response.status}. Retrying after ${waitTime}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue;
+                    }
+                }
+
+                // Other errors - return response for caller to handle
+                return response;
+            } catch (error) {
+                // Network errors
+                if (attempt < maxRetries - 1) {
+                    const waitTime = Math.pow(2, attempt) * 1000;
+                    console.warn(`${this.platform} network error. Retrying after ${waitTime}ms...`, error);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
+                }
+                throw error;
+            }
+        }
+
+        throw new Error(`Max retries (${maxRetries}) exceeded for ${this.platform}`);
+    }
 }
 
 // Twitch Plugin
@@ -37,6 +85,105 @@ class TwitchPlugin extends ScannerPlugin {
         super('Twitch Scanner', 'twitch', '🟣');
         this.apiBase = 'https://api.twitch.tv/helix';
         this.clientId = null; // Users will need to provide their own
+        this.accessToken = null;
+        this.clientSecret = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+
+        // Load saved credentials
+        this.loadCredentials();
+    }
+
+    loadCredentials() {
+        const saved = localStorage.getItem('twitch_auth');
+        if (saved) {
+            try {
+                const auth = JSON.parse(saved);
+                this.clientId = auth.clientId;
+                this.clientSecret = auth.clientSecret;
+                this.accessToken = auth.accessToken;
+                this.tokenExpiry = auth.tokenExpiry;
+
+                // Check if token is still valid
+                if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+                    this.isAuthenticated = true;
+                }
+            } catch (error) {
+                console.error('Error loading Twitch credentials:', error);
+            }
+        }
+    }
+
+    saveCredentials() {
+        const auth = {
+            clientId: this.clientId,
+            clientSecret: this.clientSecret,
+            accessToken: this.accessToken,
+            tokenExpiry: this.tokenExpiry
+        };
+        localStorage.setItem('twitch_auth', JSON.stringify(auth));
+    }
+
+    async generateToken(clientId, clientSecret) {
+        if (!clientId || !clientSecret) {
+            throw new Error('Client ID and Client Secret are required');
+        }
+
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+
+        try {
+            // Use client credentials flow to get app access token
+            const response = await fetch('https://id.twitch.tv/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    client_id: clientId,
+                    client_secret: clientSecret,
+                    grant_type: 'client_credentials'
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to generate access token');
+            }
+
+            const data = await response.json();
+            this.accessToken = data.access_token;
+            const expiresIn = data.expires_in || 3600;
+            this.tokenExpiry = Date.now() + (expiresIn * 1000);
+            this.isAuthenticated = true;
+
+            this.saveCredentials();
+            return true;
+        } catch (error) {
+            console.error('Twitch token generation error:', error);
+            throw error;
+        }
+    }
+
+    async ensureValidToken() {
+        // Check if token needs refresh
+        if (this.tokenExpiry && Date.now() > this.tokenExpiry - 60000) {
+            // Token expired or expiring soon
+            if (this.clientId && this.clientSecret) {
+                await this.generateToken(this.clientId, this.clientSecret);
+            } else {
+                this.isAuthenticated = false;
+                return false;
+            }
+        }
+        return this.isAuthenticated;
+    }
+
+    signOut() {
+        this.accessToken = null;
+        this.tokenExpiry = null;
+        this.isAuthenticated = false;
+        localStorage.removeItem('twitch_auth');
     }
 
     async scan(keywords, minViewers = 0) {
@@ -44,14 +191,17 @@ class TwitchPlugin extends ScannerPlugin {
         const results = [];
 
         try {
-            // For demo/testing without API key, return mock data
-            if (!this.clientId) {
+            // Check if we have valid authentication
+            const hasValidToken = await this.ensureValidToken();
+
+            // For demo/testing without credentials, return mock data
+            if (!hasValidToken) {
                 return this.getMockData(keywords, minViewers);
             }
 
-            // Real API implementation would go here
+            // Real API implementation with rate limit handling
             for (const keyword of keywords) {
-                const response = await fetch(
+                const response = await this.fetchWithRetry(
                     `${this.apiBase}/search/channels?query=${encodeURIComponent(keyword)}&live_only=true`,
                     {
                         headers: {
@@ -80,6 +230,16 @@ class TwitchPlugin extends ScannerPlugin {
                         }));
 
                     results.push(...streams.filter(s => s.viewers >= minViewers));
+                } else if (response.status === 401) {
+                    // Token expired or invalid, try to regenerate
+                    if (this.clientId && this.clientSecret) {
+                        await this.generateToken(this.clientId, this.clientSecret);
+                        // Retry this scan
+                        return this.scan(keywords, minViewers);
+                    } else {
+                        this.isAuthenticated = false;
+                        console.error('Twitch authentication expired');
+                    }
                 }
             }
         } catch (error) {
@@ -175,6 +335,10 @@ class YouTubePlugin extends ScannerPlugin {
     async signIn(clientId, clientSecret = null) {
         this.clientId = clientId;
 
+        // Generate random state for CSRF protection
+        const state = crypto.randomUUID();
+        sessionStorage.setItem('youtube_oauth_state', state);
+
         // OAuth 2.0 flow
         const redirectUri = window.location.origin + window.location.pathname;
         const scope = 'https://www.googleapis.com/auth/youtube.readonly';
@@ -184,7 +348,7 @@ class YouTubePlugin extends ScannerPlugin {
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             `&response_type=token` +
             `&scope=${encodeURIComponent(scope)}` +
-            `&state=youtube_auth`;
+            `&state=${encodeURIComponent(state)}`;
 
         // Open OAuth popup
         const width = 500;
@@ -202,7 +366,7 @@ class YouTubePlugin extends ScannerPlugin {
         return new Promise((resolve, reject) => {
             const checkPopup = setInterval(() => {
                 try {
-                    if (popup.closed) {
+                    if (!popup || popup.closed) {
                         clearInterval(checkPopup);
                         reject(new Error('Sign-in popup was closed'));
                         return;
@@ -216,6 +380,17 @@ class YouTubePlugin extends ScannerPlugin {
 
                         // Parse token from URL
                         const params = new URLSearchParams(popupUrl.split('#')[1]);
+
+                        // Validate CSRF state
+                        const returnedState = params.get('state');
+                        const expectedState = sessionStorage.getItem('youtube_oauth_state');
+                        sessionStorage.removeItem('youtube_oauth_state'); // Clean up
+
+                        if (returnedState !== expectedState) {
+                            reject(new Error('Invalid OAuth state - possible CSRF attack'));
+                            return;
+                        }
+
                         this.accessToken = params.get('access_token');
                         const expiresIn = parseInt(params.get('expires_in')) || 3600;
                         this.tokenExpiry = Date.now() + (expiresIn * 1000);
@@ -225,14 +400,21 @@ class YouTubePlugin extends ScannerPlugin {
                         resolve(true);
                     }
                 } catch (error) {
-                    // Cross-origin error - popup hasn't redirected back yet
+                    // Only ignore cross-origin SecurityError
+                    if (error.name !== 'SecurityError') {
+                        console.error('OAuth popup error:', error);
+                        clearInterval(checkPopup);
+                        if (popup && !popup.closed) popup.close();
+                        reject(error);
+                    }
+                    // Cross-origin SecurityError - popup hasn't redirected back yet, continue polling
                 }
             }, 500);
 
             // Timeout after 5 minutes
             setTimeout(() => {
                 clearInterval(checkPopup);
-                if (!popup.closed) popup.close();
+                if (popup && !popup.closed) popup.close();
                 reject(new Error('Sign-in timeout'));
             }, 300000);
         });
@@ -319,13 +501,13 @@ class YouTubePlugin extends ScannerPlugin {
                 authParam = `&key=${this.apiKey}`;
             }
 
-            // Real API implementation
+            // Real API implementation with rate limit handling
             for (const keyword of keywords) {
                 const searchUrl = hasValidToken
                     ? `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25`
                     : `${this.apiBase}/search?part=snippet&eventType=live&type=video&q=${encodeURIComponent(keyword)}&maxResults=25${authParam}`;
 
-                const response = await fetch(searchUrl, { headers });
+                const response = await this.fetchWithRetry(searchUrl, { headers });
 
                 if (response.ok) {
                     const data = await response.json();
@@ -339,7 +521,7 @@ class YouTubePlugin extends ScannerPlugin {
                         ? `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}`
                         : `${this.apiBase}/videos?part=liveStreamingDetails,statistics,snippet&id=${videoIds}${authParam}`;
 
-                    const detailsResponse = await fetch(detailsUrl, { headers });
+                    const detailsResponse = await this.fetchWithRetry(detailsUrl, { headers });
 
                     if (detailsResponse.ok) {
                         const details = await detailsResponse.json();

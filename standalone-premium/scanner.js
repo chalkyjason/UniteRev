@@ -1,6 +1,17 @@
 // Stream Scanner - Main Controller
 // Manages keyword-based stream discovery across multiple platforms
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 class StreamScanner {
     constructor() {
         this.pluginManager = new PluginManager();
@@ -46,19 +57,46 @@ class StreamScanner {
         keywordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const keyword = keywordInput.value.trim();
-                if (keyword && !this.keywords.includes(keyword)) {
-                    // Check keyword limit from config
-                    const maxKeywords = window.ScannerConfig ? window.ScannerConfig.MAX_KEYWORDS : 50;
-                    if (this.keywords.length >= maxKeywords) {
-                        alert(`Maximum ${maxKeywords} keywords allowed. Remove some before adding more.`);
-                        return;
-                    }
 
-                    this.keywords.push(keyword);
-                    this.renderKeywordTags();
-                    this.saveSettings();
-                    keywordInput.value = '';
+                // Validate keyword
+                if (!keyword) {
+                    return;
                 }
+
+                // Length validation
+                if (keyword.length > 100) {
+                    alert('Keyword too long (maximum 100 characters)');
+                    return;
+                }
+
+                if (keyword.length < 2) {
+                    alert('Keyword too short (minimum 2 characters)');
+                    return;
+                }
+
+                // Character validation - allow alphanumeric, spaces, hyphens, underscores, and common punctuation
+                if (!/^[a-zA-Z0-9\s\-_#&',.!?]+$/.test(keyword)) {
+                    alert('Invalid characters in keyword. Use only letters, numbers, spaces, and basic punctuation.');
+                    return;
+                }
+
+                // Check for duplicates
+                if (this.keywords.includes(keyword)) {
+                    alert('This keyword is already in your list');
+                    return;
+                }
+
+                // Check keyword limit from config
+                const maxKeywords = window.ScannerConfig ? window.ScannerConfig.MAX_KEYWORDS : 50;
+                if (this.keywords.length >= maxKeywords) {
+                    alert(`Maximum ${maxKeywords} keywords allowed. Remove some before adding more.`);
+                    return;
+                }
+
+                this.keywords.push(keyword);
+                this.renderKeywordTags();
+                this.saveSettings();
+                keywordInput.value = '';
             }
         });
 
@@ -74,9 +112,20 @@ class StreamScanner {
             }
         });
 
-        // Min viewers change
+        // Min viewers change with validation
         document.getElementById('minViewers').addEventListener('input', (e) => {
-            this.minViewers = parseInt(e.target.value) || 0;
+            let value = parseInt(e.target.value) || 0;
+
+            // Validate range
+            if (value < 0) {
+                value = 0;
+                e.target.value = 0;
+            } else if (value > 1000000) {
+                value = 1000000;
+                e.target.value = 1000000;
+            }
+
+            this.minViewers = value;
             this.saveSettings();
         });
     }
@@ -115,13 +164,19 @@ class StreamScanner {
             const statusClass = plugin.scanning ? 'scanning' : (plugin.active ? 'active' : 'inactive');
             let statusText = plugin.scanning ? 'Scanning...' : (plugin.active ? 'Active' : 'Inactive');
 
-            // Show auth status for YouTube
+            // Show auth status for YouTube and Twitch
             let authIndicator = '';
             if (plugin.platform === 'youtube') {
                 if (plugin.isAuthenticated) {
                     authIndicator = '<div style="font-size: 11px; color: #10B981; margin-top: 4px;">✓ Signed in to YouTube</div>';
                 } else {
                     authIndicator = '<div style="font-size: 11px; color: #F59E0B; margin-top: 4px;">⚠ Not signed in (using demo data)</div>';
+                }
+            } else if (plugin.platform === 'twitch') {
+                if (plugin.isAuthenticated) {
+                    authIndicator = '<div style="font-size: 11px; color: #10B981; margin-top: 4px;">✓ Token generated</div>';
+                } else {
+                    authIndicator = '<div style="font-size: 11px; color: #F59E0B; margin-top: 4px;">⚠ No token (using demo data)</div>';
                 }
             }
 
@@ -139,7 +194,7 @@ class StreamScanner {
                         ${plugin.active ? 'Disable' : 'Enable'}
                     </button>
                     <button class="btn btn-secondary" onclick="scanner.configurePlugin('${plugin.platform}')">
-                        ${plugin.platform === 'youtube' && plugin.isAuthenticated ? '✓ Signed In' : '⚙️ Configure'}
+                        ${(plugin.platform === 'youtube' || plugin.platform === 'twitch') && plugin.isAuthenticated ? '✓ Configured' : '⚙️ Configure'}
                     </button>
                 </div>
             `;
@@ -149,10 +204,15 @@ class StreamScanner {
     }
 
     togglePlugin(platform) {
-        const plugin = this.pluginManager.getPlugin(platform);
-        if (plugin) {
-            plugin.active = !plugin.active;
-            this.renderPluginList();
+        try {
+            const plugin = this.pluginManager.getPlugin(platform);
+            if (plugin) {
+                plugin.active = !plugin.active;
+                this.renderPluginList();
+            }
+        } catch (error) {
+            console.error('Error toggling plugin:', error);
+            this.showError('Failed to toggle plugin. Please try again.');
         }
     }
 
@@ -176,8 +236,8 @@ class StreamScanner {
             // Already signed in - show account info and sign out option
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🔴 YouTube Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #D1FAE5; border: 2px solid #10B981; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -207,8 +267,8 @@ class StreamScanner {
             // Not signed in - show sign-in options
             modal.querySelector('.modal-content').innerHTML = `
                 <div class="modal-header">
-                    <h3>🔴 YouTube Configuration</h3>
-                    <button class="modal-close" onclick="scanner.closeModal()">×</button>
+                    <h3 id="modalTitle">🔴 YouTube Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div style="background: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
@@ -231,7 +291,7 @@ class StreamScanner {
                                 <br>Enable YouTube Data API v3 and create OAuth 2.0 Client ID
                             </div>
                         </div>
-                        <button class="btn btn-success" onclick="scanner.youtubeSignIn()" style="width: 100%;">
+                        <button class="btn btn-success" onclick="scanner.youtubeSignIn(event)" style="width: 100%;">
                             🔐 Sign In with Google
                         </button>
                     </div>
@@ -259,43 +319,109 @@ class StreamScanner {
         }
 
         document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('show'), 10);
+        setTimeout(() => {
+            modal.classList.add('show');
+            // Focus first focusable element for accessibility
+            const firstFocusable = modal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
+        }, 10);
     }
 
     showTwitchConfig(plugin) {
         const modal = this.createModal();
-        modal.querySelector('.modal-content').innerHTML = `
-            <div class="modal-header">
-                <h3>🟣 Twitch Configuration</h3>
-                <button class="modal-close" onclick="scanner.closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Client ID</label>
-                    <input type="text" class="form-input" id="twitchClientId"
-                           placeholder="Your Twitch Client ID"
-                           value="${plugin.clientId || ''}">
-                    <div class="form-help">Get from: <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></div>
+
+        if (plugin.isAuthenticated) {
+            // Already authenticated - show status and sign out option
+            modal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h3 id="modalTitle">🟣 Twitch Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Client Secret</label>
-                    <input type="password" class="form-input" id="twitchClientSecret"
-                           placeholder="Your Client Secret">
-                    <div class="form-help">Used to generate access tokens</div>
+                <div class="modal-body">
+                    <div style="background: #D1FAE5; border: 2px solid #10B981; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="color: #065F46; font-weight: 600; margin-bottom: 8px;">✓ Token Generated</div>
+                        <div style="color: #047857; font-size: 14px;">You're using authenticated Twitch API access.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-input" id="twitchClientId"
+                               placeholder="Your Twitch Client ID"
+                               value="${plugin.clientId || ''}" disabled>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button class="btn btn-secondary" onclick="scanner.twitchSignOut()" style="flex: 1;">
+                            Clear Token
+                        </button>
+                        <button class="btn btn-success" onclick="scanner.twitchGenerateToken()" style="flex: 1;">
+                            🔄 Regenerate Token
+                        </button>
+                    </div>
                 </div>
-                <button class="btn btn-primary" onclick="scanner.saveTwitchConfig()" style="width: 100%;">
-                    Save Configuration
-                </button>
-            </div>
-        `;
+            `;
+        } else {
+            // Not authenticated - show configuration form
+            modal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h3 id="modalTitle">🟣 Twitch Configuration</h3>
+                    <button class="modal-close" onclick="scanner.closeModal()" aria-label="Close configuration modal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="color: #92400E; font-weight: 600; margin-bottom: 8px;">⚠ No Token</div>
+                        <div style="color: #B45309; font-size: 14px;">Generate an access token to scan Twitch streams.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-input" id="twitchClientId"
+                               placeholder="Your Twitch Client ID"
+                               value="${plugin.clientId || ''}">
+                        <div class="form-help">Get from: <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" class="form-input" id="twitchClientSecret"
+                               placeholder="Your Client Secret"
+                               value="">
+                        <div class="form-help">Used to generate access tokens (not stored permanently)</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="scanner.twitchGenerateToken()" style="width: 100%;">
+                        🔐 Generate Access Token
+                    </button>
+                </div>
+            `;
+        }
+
         document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('show'), 10);
+        setTimeout(() => {
+            modal.classList.add('show');
+            // Focus first focusable element for accessibility
+            const firstFocusable = modal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
+        }, 10);
     }
 
     createModal() {
+        // Store the currently focused element to restore later
+        this.previouslyFocusedElement = document.activeElement;
+
         const overlay = document.createElement('div');
         overlay.className = 'config-modal';
         overlay.id = 'configModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'modalTitle');
+        overlay.setAttribute('tabindex', '-1');
 
         const modalContent = document.createElement('div');
         modalContent.className = 'modal-content';
@@ -309,6 +435,33 @@ class StreamScanner {
             }
         });
 
+        // Keyboard navigation
+        overlay.addEventListener('keydown', (e) => {
+            // Close on Escape key
+            if (e.key === 'Escape') {
+                this.closeModal();
+            }
+
+            // Trap focus within modal (accessibility)
+            if (e.key === 'Tab') {
+                const focusableElements = overlay.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    // Shift+Tab on first element -> go to last
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    // Tab on last element -> go to first
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+
         return overlay;
     }
 
@@ -316,11 +469,17 @@ class StreamScanner {
         const modal = document.getElementById('configModal');
         if (modal) {
             modal.classList.remove('show');
-            setTimeout(() => modal.remove(), 300);
+            setTimeout(() => {
+                modal.remove();
+                // Restore focus to previously focused element
+                if (this.previouslyFocusedElement && this.previouslyFocusedElement.focus) {
+                    this.previouslyFocusedElement.focus();
+                }
+            }, 300);
         }
     }
 
-    async youtubeSignIn() {
+    async youtubeSignIn(event) {
         const clientId = document.getElementById('youtubeClientId')?.value.trim();
         if (!clientId) {
             alert('Please enter your Google OAuth Client ID first.');
@@ -331,9 +490,11 @@ class StreamScanner {
         if (!plugin) return;
 
         try {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = '⏳ Opening sign-in...';
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Opening sign-in...';
+            }
 
             await plugin.signIn(clientId);
 
@@ -342,9 +503,11 @@ class StreamScanner {
             alert('Successfully signed in to YouTube!');
         } catch (error) {
             alert('Sign-in failed: ' + error.message);
-            const btn = event.target;
-            btn.disabled = false;
-            btn.textContent = '🔐 Sign In with Google';
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '🔐 Sign In with Google';
+            }
         }
     }
 
@@ -373,6 +536,53 @@ class StreamScanner {
 
         this.closeModal();
         alert('YouTube configuration saved!');
+    }
+
+    async twitchGenerateToken() {
+        const plugin = this.pluginManager.getPlugin('twitch');
+        if (!plugin) return;
+
+        const clientId = document.getElementById('twitchClientId')?.value.trim();
+        const clientSecret = document.getElementById('twitchClientSecret')?.value.trim();
+
+        if (!clientId || !clientSecret) {
+            alert('Please enter both Client ID and Client Secret.');
+            return;
+        }
+
+        try {
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Generating token...';
+            }
+
+            await plugin.generateToken(clientId, clientSecret);
+
+            this.closeModal();
+            this.renderPluginList();
+            alert('Successfully generated Twitch access token!');
+        } catch (error) {
+            alert('Token generation failed: ' + error.message);
+            const btn = event?.target;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '🔐 Generate Access Token';
+            }
+        }
+    }
+
+    twitchSignOut() {
+        if (!confirm('Are you sure you want to clear the Twitch token?')) {
+            return;
+        }
+
+        const plugin = this.pluginManager.getPlugin('twitch');
+        if (plugin) {
+            plugin.signOut();
+            this.closeModal();
+            this.renderPluginList();
+        }
     }
 
     saveTwitchConfig() {
@@ -427,22 +637,37 @@ class StreamScanner {
             return;
         }
 
-        this.isScanning = true;
-        this.showScanningIndicator(true);
+        // Debounce to prevent rapid scan spamming
+        if (this.scanDebounce) {
+            console.log('Scan request debounced. Please wait...');
+            return;
+        }
 
-        // Initial scan
-        await this.performScan();
+        this.scanDebounce = true;
+        setTimeout(() => this.scanDebounce = false, 2000);
 
-        // Set up interval scanning
-        this.scanTimer = setInterval(() => {
-            this.performScan();
-        }, this.scanInterval * 1000);
+        try {
+            this.isScanning = true;
+            this.showScanningIndicator(true);
 
-        // Update button
-        const btn = document.querySelector('button[onclick*="startScanning"]');
-        if (btn) {
-            btn.textContent = '⏸️ Stop Scanning';
-            btn.onclick = () => this.stopScanning();
+            // Initial scan
+            await this.performScan();
+
+            // Set up interval scanning
+            this.scanTimer = setInterval(() => {
+                this.performScan();
+            }, this.scanInterval * 1000);
+
+            // Update button
+            const btn = document.querySelector('button[onclick*="startScanning"]');
+            if (btn) {
+                btn.textContent = '⏸️ Stop Scanning';
+                btn.onclick = () => this.stopScanning();
+            }
+        } catch (error) {
+            console.error('Error starting scan:', error);
+            this.showError('Failed to start scanning. Please try again.');
+            this.stopScanning();
         }
     }
 
@@ -482,6 +707,8 @@ class StreamScanner {
             this.renderPluginList(); // Update with new counts
         } catch (error) {
             console.error('Scan error:', error);
+            this.showError('Scan failed: ' + (error.message || 'Unknown error'));
+            // Don't stop scanning on error - just log and continue
         }
     }
 
@@ -493,69 +720,85 @@ class StreamScanner {
     }
 
     renderResults(results) {
-        const container = document.getElementById('resultsContainer');
+        try {
+            const container = document.getElementById('resultsContainer');
 
-        if (results.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <div>No streams found matching your keywords</div>
-                    <div style="margin-top: 8px; font-size: 14px; opacity: 0.8;">
-                        Try different keywords or lower the minimum viewers
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '<div class="results-grid"></div>';
-        const grid = container.querySelector('.results-grid');
-
-        results.forEach(stream => {
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            if (stream.isLive) card.classList.add('live');
-
-            const formattedViewers = stream.viewers >= 1000
-                ? (stream.viewers / 1000).toFixed(1) + 'K'
-                : stream.viewers;
-
-            card.innerHTML = `
-                <div class="result-header">
-                    <div class="result-avatar">
-                        <span class="platform-badge">${stream.platformIcon}</span>
-                    </div>
-                    <div class="result-info">
-                        <div class="result-name">${stream.displayName}</div>
-                        <div class="result-meta">
-                            ${stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1)}
-                            ${stream.isLive ? '<span class="live-badge">LIVE</span>' : ''}
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <div>No streams found matching your keywords</div>
+                        <div style="margin-top: 8px; font-size: 14px; opacity: 0.8;">
+                            Try different keywords or lower the minimum viewers
                         </div>
                     </div>
-                </div>
-                <div class="result-title">${stream.title}</div>
-                <div class="result-stats">
-                    <span>👁️ ${formattedViewers} viewers</span>
-                    ${stream.game ? `<span>🎮 ${stream.game}</span>` : ''}
-                </div>
-                <div class="result-actions">
-                    <button class="btn btn-success" onclick="scanner.openStream('${stream.url}')">
-                        ▶️ Watch
-                    </button>
-                    <button class="btn btn-secondary" onclick="scanner.addToMonitor('${stream.username}', '${stream.platform}')">
-                        ⭐ Monitor
-                    </button>
-                </div>
-            `;
+                `;
+                return;
+            }
 
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('button')) {
-                    this.openStream(stream.url);
-                }
+            container.innerHTML = '<div class="results-grid"></div>';
+            const grid = container.querySelector('.results-grid');
+
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+
+            results.forEach(stream => {
+                const card = this.createStreamCard(stream);
+                fragment.appendChild(card);
             });
 
-            grid.appendChild(card);
+            // Single DOM update
+            grid.appendChild(fragment);
+        } catch (error) {
+            console.error('Error rendering results:', error);
+            this.showError('Failed to display results. Please try again.');
+        }
+    }
+
+    createStreamCard(stream) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        if (stream.isLive) card.classList.add('live');
+
+        const formattedViewers = stream.viewers >= 1000
+            ? (stream.viewers / 1000).toFixed(1) + 'K'
+            : stream.viewers;
+
+        card.innerHTML = `
+            <div class="result-header">
+                <div class="result-avatar">
+                    <span class="platform-badge">${escapeHtml(stream.platformIcon)}</span>
+                </div>
+                <div class="result-info">
+                    <div class="result-name">${escapeHtml(stream.displayName)}</div>
+                    <div class="result-meta">
+                        ${escapeHtml(stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1))}
+                        ${stream.isLive ? '<span class="live-badge">LIVE</span>' : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="result-title">${escapeHtml(stream.title)}</div>
+            <div class="result-stats">
+                <span>👁️ ${formattedViewers} viewers</span>
+                ${stream.game ? `<span>🎮 ${escapeHtml(stream.game)}</span>` : ''}
+            </div>
+            <div class="result-actions">
+                <button class="btn btn-success" onclick="scanner.openStream('${escapeHtml(stream.url)}')" aria-label="Watch ${escapeHtml(stream.displayName)}">
+                    ▶️ Watch
+                </button>
+                <button class="btn btn-secondary" onclick="scanner.addToMonitor('${escapeHtml(stream.username)}', '${escapeHtml(stream.platform)}')" aria-label="Monitor ${escapeHtml(stream.displayName)}">
+                    ⭐ Monitor
+                </button>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                this.openStream(stream.url);
+            }
         });
+
+        return card;
     }
 
     openStream(url) {
@@ -581,6 +824,49 @@ class StreamScanner {
         a.href = url;
         a.download = `stream-scan-${Date.now()}.json`;
         a.click();
+    }
+
+    showError(message) {
+        // Create error notification
+        const error = document.createElement('div');
+        error.className = 'error-notification';
+        error.setAttribute('role', 'alert');
+        error.setAttribute('aria-live', 'assertive');
+        error.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 16px 24px;
+            border-radius: 8px;
+            border: 2px solid #DC2626;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        error.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <div style="flex: 1;">${escapeHtml(message)}</div>
+                <button onclick="this.parentElement.parentElement.remove()"
+                        style="background: none; border: none; cursor: pointer; font-size: 20px; color: #991B1B;"
+                        aria-label="Close error message">
+                    ×
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(error);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (error.parentElement) {
+                error.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => error.remove(), 300);
+            }
+        }, 5000);
     }
 }
 
