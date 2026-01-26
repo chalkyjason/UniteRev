@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow;
 
@@ -8,7 +9,25 @@ let mainWindow;
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
+// Get the correct base path for the app (works in both dev and packaged)
+function getAppBasePath() {
+    // In packaged app, app.getAppPath() returns the path to the asar or app directory
+    // In development, it returns the project directory
+    return app.getAppPath();
+}
+
 function createWindow() {
+    const basePath = getAppBasePath();
+
+    // Try to find the icon (prefer png, fallback to svg)
+    let iconPath = path.join(basePath, 'icon.png');
+    if (!fs.existsSync(iconPath)) {
+        iconPath = path.join(basePath, 'icon.svg');
+        if (!fs.existsSync(iconPath)) {
+            iconPath = undefined; // Let Electron use default
+        }
+    }
+
     mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
@@ -16,18 +35,49 @@ function createWindow() {
         minHeight: 600,
         title: 'AntifaTimes Stream Manager',
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(basePath, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
             webviewTag: true // Enable webview tags for embedded browsing
         },
-        icon: path.join(__dirname, 'icon.png')
+        icon: iconPath
     });
 
-    // Load the app
-    const indexPath = path.join(__dirname, 'app', 'index.html');
+    // Load the app using app.getAppPath() for reliable path resolution
+    const indexPath = path.join(basePath, 'app', 'index.html');
+    console.log('Loading index from:', indexPath);
+    console.log('App base path:', basePath);
+    console.log('File exists:', fs.existsSync(indexPath));
+
     mainWindow.loadFile(indexPath).catch(err => {
         console.error('Failed to load index.html:', err);
+        console.error('Attempted path:', indexPath);
+
+        // Show an error page instead of failing silently
+        mainWindow.loadURL(`data:text/html,
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Error Loading Application</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                           background: #1e293b; color: white; padding: 40px; }
+                    h1 { color: #ef4444; }
+                    pre { background: #0f172a; padding: 20px; border-radius: 8px; overflow: auto; }
+                    .path { color: #60a5fa; }
+                </style>
+            </head>
+            <body>
+                <h1>Failed to Load Application</h1>
+                <p>The application could not find its main HTML file.</p>
+                <p><strong>Expected path:</strong> <span class="path">${indexPath}</span></p>
+                <p><strong>App base path:</strong> <span class="path">${basePath}</span></p>
+                <p><strong>Error:</strong></p>
+                <pre>${err.message}</pre>
+                <p>Please report this issue at: <a href="https://github.com/chalkyjason/UniteRev/issues" style="color: #60a5fa;">GitHub Issues</a></p>
+            </body>
+            </html>
+        `);
     });
 
     // Open DevTools for debugging in development
