@@ -26,6 +26,7 @@ class StreamScanner {
         this.setupEventListeners();
         this.renderPluginList();
         this.renderKeywordTags();
+        this.updateSavedStreamersButton();
     }
 
     loadSettings() {
@@ -149,6 +150,89 @@ class StreamScanner {
         this.keywords = this.keywords.filter(k => k !== keyword);
         this.renderKeywordTags();
         this.saveSettings();
+    }
+
+    // Load saved streamers from the main app's localStorage
+    getSavedStreamers() {
+        try {
+            const saved = localStorage.getItem('multistream_streamers');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Error loading saved streamers:', error);
+        }
+        return [];
+    }
+
+    // Add saved streamers as keywords and start scanning
+    searchSavedStreamers() {
+        const streamers = this.getSavedStreamers();
+
+        if (streamers.length === 0) {
+            alert('No saved streamers found.\n\nGo to the main viewer and save some streamers first!');
+            return;
+        }
+
+        // Extract handles/usernames from saved streamers
+        const handles = streamers.map(s => {
+            // Use the handle (username) as the search keyword
+            // Remove @ prefix for YouTube handles to search better
+            let handle = s.handle || s.displayName;
+            if (handle.startsWith('@')) {
+                handle = handle.substring(1);
+            }
+            return handle;
+        }).filter(h => h && h.length >= 2);
+
+        if (handles.length === 0) {
+            alert('No valid streamer handles found in saved streamers.');
+            return;
+        }
+
+        // Stop current scan if running
+        if (this.isScanning) {
+            this.stopScanning();
+        }
+
+        // Clear existing keywords and add streamer handles
+        this.keywords = [];
+        const maxKeywords = window.ScannerConfig ? window.ScannerConfig.MAX_KEYWORDS : 50;
+
+        handles.forEach(handle => {
+            if (this.keywords.length < maxKeywords && !this.keywords.includes(handle)) {
+                this.keywords.push(handle);
+            }
+        });
+
+        this.renderKeywordTags();
+        this.saveSettings();
+
+        // Show feedback
+        const count = this.keywords.length;
+        console.log(`Added ${count} saved streamer(s) as keywords:`, this.keywords);
+
+        // Auto-start scanning
+        this.startScanning();
+    }
+
+    // Update the saved streamers button state
+    updateSavedStreamersButton() {
+        const btn = document.getElementById('searchSavedBtn');
+        if (!btn) return;
+
+        const streamers = this.getSavedStreamers();
+        const count = streamers.length;
+
+        if (count > 0) {
+            btn.innerHTML = `💾 Search Saved Streamers (${count})`;
+            btn.disabled = false;
+            btn.title = `Search for ${count} saved streamer(s)`;
+        } else {
+            btn.innerHTML = '💾 Search Saved Streamers (0)';
+            btn.disabled = true;
+            btn.title = 'No saved streamers - save some in the main viewer first';
+        }
     }
 
     renderPluginList() {
