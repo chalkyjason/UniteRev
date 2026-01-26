@@ -335,13 +335,31 @@ class YouTubePlugin extends ScannerPlugin {
     async signIn(clientId, clientSecret = null) {
         this.clientId = clientId;
 
+        // Check if running in Electron (desktop app)
+        const isElectron = window.electron && window.electron.isElectron;
+
         // Generate random state for CSRF protection
         const state = crypto.randomUUID();
         sessionStorage.setItem('youtube_oauth_state', state);
 
-        // OAuth 2.0 flow
-        const redirectUri = window.location.origin + window.location.pathname;
         const scope = 'https://www.googleapis.com/auth/youtube.readonly';
+
+        if (isElectron) {
+            // Electron OAuth flow using loopback redirect
+            // Google requires http://127.0.0.1 for desktop apps
+            return this.signInElectron(clientId, scope, state);
+        } else {
+            // Web OAuth flow (original implementation)
+            return this.signInWeb(clientId, scope, state);
+        }
+    }
+
+    async signInElectron(clientId, scope, state) {
+        // Start the OAuth callback server in the main process
+        const serverInfo = await window.electron.oauth.startServer();
+        const redirectUri = serverInfo.redirectUri;
+
+        console.log('Electron OAuth: Using redirect URI:', redirectUri);
 
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
             `client_id=${encodeURIComponent(clientId)}` +
@@ -362,7 +380,100 @@ class YouTubePlugin extends ScannerPlugin {
             `width=${width},height=${height},left=${left},top=${top}`
         );
 
-        // Listen for OAuth callback
+        return new Promise((resolve, reject) => {
+            let resolved = false;
+
+            // Listen for OAuth callback from main process
+            window.electron.oauth.onCallback((data) => {
+                if (resolved) return;
+
+                console.log('Received OAuth callback:', data);
+
+                // The token is in the URL hash fragment
+                // We need to get it from the popup's URL after redirect
+                try {
+                    if (popup && !popup.closed) {
+                        const popupUrl = popup.location.href;
+                        if (popupUrl.includes('access_token=')) {
+                            this.handleOAuthResponse(popupUrl, state, resolve, reject);
+                            resolved = true;
+                            popup.close();
+                            window.electron.oauth.stopServer();
+                        }
+                    }
+                } catch (e) {
+                    // Cross-origin error, continue
+                }
+            });
+
+            // Also poll the popup URL for the token (fallback)
+            const checkPopup = setInterval(() => {
+                if (resolved) {
+                    clearInterval(checkPopup);
+                    return;
+                }
+
+                try {
+                    if (!popup || popup.closed) {
+                        clearInterval(checkPopup);
+                        if (!resolved) {
+                            window.electron.oauth.stopServer();
+                            reject(new Error('Sign-in popup was closed'));
+                        }
+                        return;
+                    }
+
+                    const popupUrl = popup.location.href;
+                    if (popupUrl.includes('access_token=')) {
+                        clearInterval(checkPopup);
+                        resolved = true;
+                        popup.close();
+                        window.electron.oauth.stopServer();
+                        this.handleOAuthResponse(popupUrl, state, resolve, reject);
+                    }
+                } catch (error) {
+                    // Cross-origin SecurityError - popup hasn't redirected back yet
+                    if (error.name !== 'SecurityError') {
+                        console.error('OAuth popup error:', error);
+                    }
+                }
+            }, 500);
+
+            // Timeout after 5 minutes
+            setTimeout(() => {
+                if (!resolved) {
+                    clearInterval(checkPopup);
+                    if (popup && !popup.closed) popup.close();
+                    window.electron.oauth.stopServer();
+                    reject(new Error('Sign-in timeout'));
+                }
+            }, 300000);
+        });
+    }
+
+    async signInWeb(clientId, scope, state) {
+        // Web OAuth flow - uses current page origin as redirect
+        const redirectUri = window.location.origin + window.location.pathname;
+
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${encodeURIComponent(clientId)}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=token` +
+            `&scope=${encodeURIComponent(scope)}` +
+            `&state=${encodeURIComponent(state)}`;
+
+        // Open OAuth popup
+        const width = 500;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        const popup = window.open(
+            authUrl,
+            'YouTube Sign In',
+            `width=${width},height=${height},left=${left},top=${top}`
+        );
+
         return new Promise((resolve, reject) => {
             const checkPopup = setInterval(() => {
                 try {
@@ -372,52 +483,57 @@ class YouTubePlugin extends ScannerPlugin {
                         return;
                     }
 
-                    // Check if we got redirected back with token
                     const popupUrl = popup.location.href;
                     if (popupUrl.includes('access_token=')) {
                         clearInterval(checkPopup);
                         popup.close();
-
-                        // Parse token from URL
-                        const params = new URLSearchParams(popupUrl.split('#')[1]);
-
-                        // Validate CSRF state
-                        const returnedState = params.get('state');
-                        const expectedState = sessionStorage.getItem('youtube_oauth_state');
-                        sessionStorage.removeItem('youtube_oauth_state'); // Clean up
-
-                        if (returnedState !== expectedState) {
-                            reject(new Error('Invalid OAuth state - possible CSRF attack'));
-                            return;
-                        }
-
-                        this.accessToken = params.get('access_token');
-                        const expiresIn = parseInt(params.get('expires_in')) || 3600;
-                        this.tokenExpiry = Date.now() + (expiresIn * 1000);
-                        this.isAuthenticated = true;
-
-                        this.saveCredentials();
-                        resolve(true);
+                        this.handleOAuthResponse(popupUrl, state, resolve, reject);
                     }
                 } catch (error) {
-                    // Only ignore cross-origin SecurityError
                     if (error.name !== 'SecurityError') {
                         console.error('OAuth popup error:', error);
                         clearInterval(checkPopup);
                         if (popup && !popup.closed) popup.close();
                         reject(error);
                     }
-                    // Cross-origin SecurityError - popup hasn't redirected back yet, continue polling
                 }
             }, 500);
 
-            // Timeout after 5 minutes
             setTimeout(() => {
                 clearInterval(checkPopup);
                 if (popup && !popup.closed) popup.close();
                 reject(new Error('Sign-in timeout'));
             }, 300000);
         });
+    }
+
+    handleOAuthResponse(url, expectedState, resolve, reject) {
+        // Parse token from URL hash fragment
+        const hashPart = url.split('#')[1];
+        if (!hashPart) {
+            reject(new Error('No token in OAuth response'));
+            return;
+        }
+
+        const params = new URLSearchParams(hashPart);
+
+        // Validate CSRF state
+        const returnedState = params.get('state');
+        const storedState = sessionStorage.getItem('youtube_oauth_state');
+        sessionStorage.removeItem('youtube_oauth_state');
+
+        if (returnedState !== storedState) {
+            reject(new Error('Invalid OAuth state - possible CSRF attack'));
+            return;
+        }
+
+        this.accessToken = params.get('access_token');
+        const expiresIn = parseInt(params.get('expires_in')) || 3600;
+        this.tokenExpiry = Date.now() + (expiresIn * 1000);
+        this.isAuthenticated = true;
+
+        this.saveCredentials();
+        resolve(true);
     }
 
     async refreshAccessToken() {

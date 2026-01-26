@@ -1,9 +1,12 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 let mainWindow;
+let oauthServer = null;
+let oauthServerPort = null;
 
 // Configure auto-updater
 autoUpdater.autoDownload = false;
@@ -275,6 +278,113 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
+});
+
+// OAuth callback server for Google authentication
+// Google requires http://127.0.0.1 or http://localhost for desktop apps
+ipcMain.handle('oauth-start-server', async () => {
+    return new Promise((resolve, reject) => {
+        if (oauthServer) {
+            // Server already running
+            resolve({ port: oauthServerPort, redirectUri: `http://127.0.0.1:${oauthServerPort}/callback` });
+            return;
+        }
+
+        oauthServer = http.createServer((req, res) => {
+            const url = new URL(req.url, `http://127.0.0.1`);
+
+            if (url.pathname === '/callback') {
+                // Send success page to browser
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Authentication Successful</title>
+                        <style>
+                            body {
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                                color: white;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                height: 100vh;
+                                margin: 0;
+                            }
+                            .container {
+                                text-align: center;
+                                padding: 40px;
+                                background: rgba(255,255,255,0.1);
+                                border-radius: 16px;
+                                backdrop-filter: blur(10px);
+                            }
+                            h1 { color: #22c55e; margin-bottom: 16px; }
+                            p { color: #94a3b8; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>✓ Authentication Successful</h1>
+                            <p>You can close this window and return to the application.</p>
+                            <script>
+                                // Send the hash fragment to the parent
+                                if (window.opener) {
+                                    window.opener.postMessage({
+                                        type: 'oauth-callback',
+                                        hash: window.location.hash
+                                    }, '*');
+                                }
+                                // Auto-close after a short delay
+                                setTimeout(() => window.close(), 2000);
+                            </script>
+                        </div>
+                    </body>
+                    </html>
+                `);
+
+                // Notify renderer about the callback
+                if (mainWindow) {
+                    mainWindow.webContents.send('oauth-callback', {
+                        url: req.url,
+                        hash: url.hash
+                    });
+                }
+            } else {
+                res.writeHead(404);
+                res.end('Not Found');
+            }
+        });
+
+        // Find an available port
+        oauthServer.listen(0, '127.0.0.1', () => {
+            oauthServerPort = oauthServer.address().port;
+            console.log(`OAuth callback server started on port ${oauthServerPort}`);
+            resolve({ port: oauthServerPort, redirectUri: `http://127.0.0.1:${oauthServerPort}/callback` });
+        });
+
+        oauthServer.on('error', (err) => {
+            console.error('OAuth server error:', err);
+            reject(err);
+        });
+    });
+});
+
+ipcMain.handle('oauth-stop-server', async () => {
+    if (oauthServer) {
+        oauthServer.close();
+        oauthServer = null;
+        oauthServerPort = null;
+        console.log('OAuth callback server stopped');
+    }
+    return true;
+});
+
+ipcMain.handle('oauth-get-redirect-uri', async () => {
+    if (oauthServerPort) {
+        return `http://127.0.0.1:${oauthServerPort}/callback`;
+    }
+    return null;
 });
 
 // Log version info
