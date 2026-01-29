@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:UniteRev.Maui.Views"
+       x:Class="UniteRev.Maui.AppShell"
+       Shell.FlyoutBehavior="Flyout"
+       Shell.FlyoutBackgroundColor="{StaticResource Primary}">
+
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="120" BackgroundColor="{StaticResource Primary}">
+            <VerticalStackLayout VerticalOptions="Center" Padding="20">
+                <Label Text="🎬 UniteRev"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="White"/>
+                <Label Text="Multi-Stream Manager"
+                       FontSize="14"
+                       TextColor="{StaticResource Gray100}"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <FlyoutItem Title="Stream Viewer" Icon="home.png">
+        <ShellContent ContentTemplate="{DataTemplate views:MainPage}" Route="main"/>
+    </FlyoutItem>
+
+    <FlyoutItem Title="Stream Scanner" Icon="search.png">
+        <ShellContent ContentTemplate="{DataTemplate views:ScannerPage}" Route="scanner"/>
+    </FlyoutItem>
+
+    <FlyoutItem Title="Settings" Icon="settings.png">
+        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" Route="settings"/>
+    </FlyoutItem>
+
+</Shell>
