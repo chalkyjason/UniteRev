@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:UniteRev.Maui.ViewModels"
+             xmlns:models="clr-namespace:UniteRev.Maui.Models"
+             x:Class="UniteRev.Maui.Views.ScannerPage"
+             x:DataType="vm:ScannerViewModel"
+             Title="Stream Scanner"
+             BackgroundColor="{StaticResource BackgroundDark}">
+
+    <Grid ColumnDefinitions="350,*" Padding="16" ColumnSpacing="16">
+
+        <!-- Left Panel: Configuration -->
+        <ScrollView Grid.Column="0">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Scanner Config Card -->
+                <Frame Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="⚙️ Scanner Configuration" Style="{StaticResource Subtitle}" FontSize="18"/>
+
+                        <!-- Keywords Input -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Keywords" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Entry Style="{StaticResource FormEntry}"
+                                       Text="{Binding KeywordInput}"
+                                       Placeholder="Enter keyword..."
+                                       ReturnCommand="{Binding AddKeywordCommand}"/>
+                                <Button Grid.Column="1" Text="Add"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding AddKeywordCommand}"
+                                        Padding="12,8"/>
+                            </Grid>
+                            <Label Text="Press Enter or click Add" Style="{StaticResource Caption}"/>
+                        </VerticalStackLayout>
+
+                        <!-- Keyword Tags -->
+                        <FlexLayout Wrap="Wrap" Direction="Row"
+                                    AlignItems="Start" JustifyContent="Start"
+                                    BindableLayout.ItemsSource="{Binding Keywords}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Frame BackgroundColor="{StaticResource Primary}"
+                                           CornerRadius="16" Padding="12,6"
+                                           Margin="0,0,6,6" HasShadow="False">
+                                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+                                            <Label Text="{Binding .}"
+                                                   TextColor="White" FontSize="13"
+                                                   VerticalOptions="Center"/>
+                                            <Label Grid.Column="1" Text="✕"
+                                                   TextColor="White" FontSize="13"
+                                                   VerticalOptions="Center">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ScannerViewModel}}, Path=RemoveKeywordCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <!-- Search Saved Streamers Button -->
+                        <Button Text="{Binding SavedStreamersCount, StringFormat='💾 Search Saved Streamers ({0})'}"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding SearchSavedStreamersCommand}"/>
+                        <Label Text="Automatically search for your saved streamers" Style="{StaticResource Caption}"/>
+
+                        <!-- Scan Interval -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Scan Interval" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                            <Picker ItemsSource="{Binding IntervalOptions}"
+                                    SelectedItem="{Binding ScanInterval}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    TitleColor="{StaticResource TextSecondary}"
+                                    Title="Interval"/>
+                        </VerticalStackLayout>
+
+                        <!-- Min Viewers -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Min. Viewers" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                            <Entry Style="{StaticResource FormEntry}"
+                                   Text="{Binding MinViewers}"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"/>
+                        </VerticalStackLayout>
+
+                        <!-- Scan Button -->
+                        <Button Text="{Binding ScanButtonText}"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ToggleScanningCommand}"/>
+
+                        <!-- Status -->
+                        <Label Text="{Binding StatusText}" Style="{StaticResource Caption}"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Plugins Card -->
+                <Frame Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="🔌 Scanner Plugins" Style="{StaticResource Subtitle}" FontSize="18"/>
+
+                        <!-- Twitch -->
+                        <Frame Style="{StaticResource Card}" Padding="12">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Label Text="🟣" FontSize="24" VerticalOptions="Center"/>
+                                <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                    <Label Text="Twitch" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                                    <Label Text="{Binding TwitchAuthenticated, Converter={StaticResource BoolToConnectionStatusConverter}}"
+                                           Style="{StaticResource Caption}"/>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="Configure"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding ConfigureTwitchCommand}"
+                                        VerticalOptions="Center"/>
+                            </Grid>
+                        </Frame>
+
+                        <!-- YouTube -->
+                        <Frame Style="{StaticResource Card}" Padding="12">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Label Text="🔴" FontSize="24" VerticalOptions="Center"/>
+                                <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                    <Label Text="YouTube" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                                    <Label Text="{Binding YouTubeAuthenticated, Converter={StaticResource BoolToConnectionStatusConverter}}"
+                                           Style="{StaticResource Caption}"/>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="Configure"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding ConfigureYouTubeCommand}"
+                                        VerticalOptions="Center"/>
+                            </Grid>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Right Panel: Results -->
+        <Frame Grid.Column="1" Style="{StaticResource Card}">
+            <Grid RowDefinitions="Auto,*">
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                    <Label Text="📺 Discovered Streams" Style="{StaticResource Subtitle}" FontSize="18"/>
+                    <Label Grid.Column="1"
+                           Text="{Binding Results.Count, StringFormat='{0} found'}"
+                           Style="{StaticResource Caption}" VerticalOptions="Center"/>
+                </Grid>
+
+                <!-- Scanning Indicator -->
+                <ActivityIndicator Grid.Row="1"
+                                   IsRunning="{Binding IsScanning}"
+                                   IsVisible="{Binding IsScanning}"
+                                   Color="{StaticResource Primary}"
+                                   VerticalOptions="Start" Margin="0,20,0,0"/>
+
+                <!-- Results List -->
+                <CollectionView Grid.Row="1" ItemsSource="{Binding Results}">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                            <Label Text="🔍" FontSize="48" HorizontalOptions="Center"/>
+                            <Label Text="No streams found" Style="{StaticResource Body}" HorizontalOptions="Center"/>
+                            <Label Text="Add keywords and start scanning to discover streams"
+                                   Style="{StaticResource Caption}" HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LiveStream">
+                            <Frame Style="{StaticResource Card}" Margin="0,0,0,8">
+                                <Grid ColumnDefinitions="80,*,Auto" ColumnSpacing="12">
+
+                                    <!-- Thumbnail -->
+                                    <Grid>
+                                        <Image Source="{Binding ThumbnailUrl}"
+                                               Aspect="AspectFill"
+                                               WidthRequest="80" HeightRequest="45"/>
+                                        <Frame Style="{StaticResource LiveBadge}"
+                                               IsVisible="{Binding IsLive}"
+                                               VerticalOptions="End"
+                                               HorizontalOptions="Start"
+                                               Margin="4">
+                                            <Label Text="LIVE" TextColor="White"
+                                                   FontSize="9" FontAttributes="Bold"/>
+                                        </Frame>
+                                    </Grid>
+
+                                    <!-- Info -->
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding Title}"
+                                               Style="{StaticResource Body}"
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1"/>
+                                        <Label Style="{StaticResource Caption}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding PlatformIcon}"/>
+                                                    <Span Text=" "/>
+                                                    <Span Text="{Binding ChannelName}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label Style="{StaticResource Caption}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="👁 "/>
+                                                    <Span Text="{Binding FormattedViewers}"/>
+                                                    <Span Text=" viewers"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </VerticalStackLayout>
+
+                                    <!-- Actions -->
+                                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="4">
+                                        <Button Text="Watch"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Padding="10,6" FontSize="12"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ScannerViewModel}}, Path=OpenStreamCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+        </Frame>
+
+    </Grid>
+
+</ContentPage>
